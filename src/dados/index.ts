@@ -19,6 +19,11 @@ import type {
 const img = (semente: string, w = 800) =>
   `https://picsum.photos/seed/${semente}/${w}/${Math.round((w * 2) / 3)}`;
 
+// FOTO REAL E LICENCIADA de um item específico: coloque o arquivo (licença
+// livre p/ uso comercial — Unsplash/Pexels, ou foto própria) em `public/destinos/`
+// e aponte `imagem` para o caminho servido, ex.: '/destinos/cataratas-iguacu.jpg'.
+// Mantém o tipo `string` e funciona no build web (public/ é copiado p/ a raiz do site).
+
 /**
  * Imagem dos destinos da home (formato retrato). Mesma fonte estável do `img`.
  */
