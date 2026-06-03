@@ -1,5 +1,7 @@
 # ViajeBrasil — App Mobile
 
+**App em produção (PWA/web):** https://viajebrasil.vercel.app/
+
 Aplicativo mobile da **ViajeBrasil** (VIAJE BRASIL LTDA) para venda de
 passagens **rodoviárias** e **aéreas** (nacionais e internacionais),
 **hospedagem**, **locação de veículos**, **seguro viagem** e **pacotes
@@ -10,9 +12,9 @@ da tela inicial (carrossel de ofertas, seletor de categorias e busca) tem como
 referência o app da Decolar.
 
 > Projeto **autônomo**: tem seu próprio gerenciamento de dependências (npm) e
-> roda isolado. Mora no repositório `viajebrasil` e é espelhado em
-> `apps/mobile` do monorepo `contabil-pro` (onde fica fora do workspace pnpm,
-> para não interferir no `pnpm install --frozen-lockfile` da API/web).
+> roda isolado, neste repositório `viajebrasil`. Foi migrado para fora do
+> monorepo `contabil-pro` (antes em `apps/mobile`), para separar os dois
+> produtos.
 
 ## Como rodar
 
@@ -123,9 +125,10 @@ já está configurado para gerar o site estático em `dist/`.
 Para publicar um preview compartilhável:
 
 1. Na Vercel, **New Project** apontando para este repositório.
-2. Em **Root Directory**, selecione `apps/mobile`.
+2. Deixe o **Root Directory** na raiz do repositório (`./`).
 3. O build usa `npm run build:web` (= `expo export --platform web`) e publica
    a pasta `dist`. Não precisa de variáveis de ambiente para a versão mockada.
+   O deploy atual está em https://viajebrasil.vercel.app/.
 4. Quando os endpoints reais existirem, defina `EXPO_PUBLIC_API_URL` nas
    Environment Variables do projeto — os serviços passam de `mock` para `api`
    automaticamente (ver `src/servicos/config.ts`).
