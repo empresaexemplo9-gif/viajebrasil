@@ -20,25 +20,8 @@ import { abrirWhiteLabel } from '../../src/servicos';
 /** Roxo do card "Corporativo" (só nesta vitrine, fora da paleta base). */
 const ROXO = '#6D4FB0';
 
-/**
- * Foto "cartão postal" real de cada cidade, do Wikimedia Commons (mídia livre,
- * uso comercial permitido; atribuição em CREDITS.md). Carrega no navegador via
- * Special:FilePath. Seeds sem mapa caem em placeholder estável (Picsum).
- */
-const FOTO_CIDADE: Record<string, string> = {
-  rio: 'Christ_the_Redeemer_-_Cristo_Redentor.jpg',
-  ssa: 'Farol_da_Barra_Salvador.JPG',
-  sao: 'Ponte_estaiada_Octavio_Frias_-_Sao_Paulo.jpg',
-  floripa: 'Ponte_Hercilio_Luz_Florianopolis-edit.jpg',
-  bh: 'Igreja_Pampulha.jpg',
-};
-
-const foto = (seed: string, w = 640) => {
-  const arquivo = FOTO_CIDADE[seed];
-  return arquivo
-    ? `https://commons.wikimedia.org/wiki/Special:FilePath/${arquivo}?width=${w}`
-    : `https://picsum.photos/seed/vb-${seed}/${w}/400`;
-};
+/** Imagem ilustrativa genérica e estável (Lorem Picsum), determinística por seed. */
+const foto = (seed: string, w = 640) => `https://picsum.photos/seed/vb-${seed}/${w}/400`;
 
 const CARDS = [
   { chave: 'onibus', emoji: '🚌', titulo: t.vitrine.onibusTitulo, sub: t.vitrine.onibusSub, cor: cores.verde, selecionado: true },
