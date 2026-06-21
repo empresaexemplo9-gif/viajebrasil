@@ -61,6 +61,8 @@ que publica o app web:
 { "tipo": "completo", "tenantId": "viajebrasil",
   "origem": "app:web", "criadoEm": "2026-06-21T12:01:00.000Z",
   "lead": {
+    "origem": "São Paulo",
+    "destino": "Rio de Janeiro",
     "numeroPassageiros": 2,
     "nomes": ["Maria Silva", "João Silva"],
     "dataIda": "20/07/2026",
@@ -69,6 +71,9 @@ que publica o app web:
     "telefone": "(62) 99999-8888"
   } }
 ```
+
+> Migração `sql/002_rota_aereo.sql` adiciona `origem_cidade`/`destino_cidade`
+> em `leads_aereo` (o trecho da viagem). Rode-a no Neon após a `001`.
 
 No `tipo: "completo"` a função grava `contato_telefone`/`contato_nome` e gera um
 link `wa.me` no e-mail, para o consultor abrir a conversa com o cliente no

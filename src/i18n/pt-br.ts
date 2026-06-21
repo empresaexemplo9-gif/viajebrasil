@@ -85,6 +85,8 @@ export const ptBR = {
     digitando: 'Digitando…',
     saudacao:
       'Olá! 👋 Sou o assistente virtual da ViajeBrasil. Vou reunir alguns dados da sua viagem aérea para já adiantar o seu atendimento. Leva menos de 1 minuto.',
+    perguntaOrigem: 'De qual cidade você vai partir? (origem)',
+    perguntaDestino: 'E para qual cidade você quer ir? (destino)',
     perguntaPassageiros: 'Para quantos passageiros é a viagem? (1 a 9)',
     perguntaNomes:
       'Qual o nome completo do(s) passageiro(s)? Se for mais de um, separe por vírgula.',
@@ -96,6 +98,7 @@ export const ptBR = {
     perguntaContato:
       'Por fim, qual o seu WhatsApp com DDD? Assim o consultor já te chama por lá. (ex.: (62) 99999-8888)',
     resumoTitulo: 'Perfeito! Registrei os seguintes dados da sua viagem:',
+    resumoTrecho: (origem: string, destino: string) => `• Trecho: ${origem} → ${destino}`,
     resumoPassageiros: (n: number) =>
       `• Passageiros: ${n} ${n === 1 ? 'pessoa' : 'pessoas'}`,
     resumoNomes: (nomes: string) => `• Nome(s): ${nomes}`,

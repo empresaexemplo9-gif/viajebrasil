@@ -18,6 +18,10 @@ const CAMINHO = '/api/leads-aereo';
 
 /** Dados da viagem coletados pelo chatbot. */
 export interface LeadAereo {
+  /** Cidade de origem da viagem. */
+  origem: string;
+  /** Cidade de destino da viagem. */
+  destino: string;
   numeroPassageiros: number;
   /** Nome(s) do(s) passageiro(s). */
   nomes: string[];

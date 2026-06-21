@@ -78,18 +78,20 @@ async function registrarLead(tenantSlug: string, lead: Record<string, any>, orig
   const numero = Number(lead.numeroPassageiros) || nomes.length || 1;
   const telefone = String(lead.telefone ?? '');
   const contatoNome = nomes[0] ?? null;
+  const origemCidade = String(lead.origem ?? '') || null;
+  const destinoCidade = String(lead.destino ?? '') || null;
 
   // Mesma transação: define o tenant corrente e insere — `leads_aereo` tem
   // FORCE ROW LEVEL SECURITY, então o INSERT só passa com o tenant batendo.
   await sql.transaction([
     sql`select set_config('app.current_tenant', ${tenantId}, true)`,
     sql`insert into leads_aereo
-          (tenant_id, numero_passageiros, nomes, data_ida, data_volta, classe,
-           contato_nome, contato_telefone, origem)
+          (tenant_id, origem_cidade, destino_cidade, numero_passageiros, nomes,
+           data_ida, data_volta, classe, contato_nome, contato_telefone, origem)
         values
-          (${tenantId}, ${numero}, ${nomes}::text[], ${String(lead.dataIda ?? '')},
-           ${lead.dataVolta ?? null}, ${String(lead.classe ?? '')},
-           ${contatoNome}, ${telefone || null}, ${origem})`,
+          (${tenantId}, ${origemCidade}, ${destinoCidade}, ${numero}, ${nomes}::text[],
+           ${String(lead.dataIda ?? '')}, ${lead.dataVolta ?? null},
+           ${String(lead.classe ?? '')}, ${contatoNome}, ${telefone || null}, ${origem})`,
   ]);
 }
 
@@ -138,7 +140,12 @@ function montarEmail(tipo: 'inicio' | 'completo', corpo: Record<string, any>) {
   const numeroPax = Number(lead.numeroPassageiros) || listaNomes.length || 1;
   const ida = String(lead.dataIda ?? '').trim();
   const classe = String(lead.classe ?? '').trim();
-  const partes: string[] = [`${numeroPax} passageiro${numeroPax === 1 ? '' : 's'}`];
+  const origemViagem = String(lead.origem ?? '').trim();
+  const destinoViagem = String(lead.destino ?? '').trim();
+  const trecho = origemViagem || destinoViagem ? `${origemViagem || '—'} → ${destinoViagem || '—'}` : '—';
+  const partes: string[] = [];
+  if (origemViagem || destinoViagem) partes.push(trecho);
+  partes.push(`${numeroPax} passageiro${numeroPax === 1 ? '' : 's'}`);
   if (ida) partes.push(`ida ${ida}`);
   partes.push(lead.dataVolta ? `volta ${String(lead.dataVolta)}` : 'somente ida');
   if (classe) partes.push(`classe ${classe}`);
@@ -163,6 +170,7 @@ function montarEmail(tipo: 'inicio' | 'completo', corpo: Record<string, any>) {
        </p>`;
 
   const detalhes = [
+    linhaDetalhe('Trecho', trecho),
     linhaDetalhe('Passageiros', String(lead.numeroPassageiros ?? '—')),
     linhaDetalhe('Nome(s)', nomes),
     linhaDetalhe('Ida', String(lead.dataIda ?? '—')),

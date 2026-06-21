@@ -31,7 +31,16 @@ import {
 } from '../servicos';
 
 /** Etapas da conversa, em ordem. */
-type Etapa = 'passageiros' | 'nomes' | 'ida' | 'volta' | 'classe' | 'contato' | 'final';
+type Etapa =
+  | 'origem'
+  | 'destino'
+  | 'passageiros'
+  | 'nomes'
+  | 'ida'
+  | 'volta'
+  | 'classe'
+  | 'contato'
+  | 'final';
 
 interface Mensagem {
   id: string;
@@ -52,7 +61,7 @@ export function ChatbotAereo({ visivel, aoFechar }: Props) {
   const scrollRef = useRef<ScrollView>(null);
 
   const [mensagens, setMensagens] = useState<Mensagem[]>([]);
-  const [etapa, setEtapa] = useState<Etapa>('passageiros');
+  const [etapa, setEtapa] = useState<Etapa>('origem');
   const [entrada, setEntrada] = useState('');
   const [enviando, setEnviando] = useState(false);
 
@@ -74,10 +83,10 @@ export function ChatbotAereo({ visivel, aoFechar }: Props) {
     dados.current = {};
     setEntrada('');
     setEnviando(false);
-    setEtapa('passageiros');
+    setEtapa('origem');
     setMensagens([
       { id: novoId(), autor: 'bot', texto: t.chatAereo.saudacao },
-      { id: novoId(), autor: 'bot', texto: t.chatAereo.perguntaPassageiros },
+      { id: novoId(), autor: 'bot', texto: t.chatAereo.perguntaOrigem },
     ]);
     // Gatilho do botão: avisa que um atendimento foi iniciado (melhor-esforço).
     void notificarInicioAtendimentoAereo();
@@ -92,6 +101,8 @@ export function ChatbotAereo({ visivel, aoFechar }: Props) {
   /** Finaliza: monta o lead, envia ao backend e exibe o direcionamento. */
   const finalizar = useCallback(async () => {
     const lead: LeadAereo = {
+      origem: dados.current.origem ?? '',
+      destino: dados.current.destino ?? '',
       numeroPassageiros: dados.current.numeroPassageiros ?? 1,
       nomes: dados.current.nomes ?? [],
       dataIda: dados.current.dataIda ?? '',
@@ -104,6 +115,7 @@ export function ChatbotAereo({ visivel, aoFechar }: Props) {
     adicionarBot(t.chatAereo.resumoTitulo);
     adicionarBot(
       [
+        t.chatAereo.resumoTrecho(lead.origem, lead.destino),
         t.chatAereo.resumoPassageiros(lead.numeroPassageiros),
         t.chatAereo.resumoNomes(lead.nomes.join(', ')),
         t.chatAereo.resumoIda(lead.dataIda),
@@ -131,6 +143,22 @@ export function ChatbotAereo({ visivel, aoFechar }: Props) {
     (textoBruto: string) => {
       const texto = textoBruto.trim();
       if (!texto) return;
+
+      if (etapa === 'origem') {
+        dados.current.origem = texto;
+        adicionarCliente(texto);
+        setEtapa('destino');
+        adicionarBot(t.chatAereo.perguntaDestino);
+        return;
+      }
+
+      if (etapa === 'destino') {
+        dados.current.destino = texto;
+        adicionarCliente(texto);
+        setEtapa('passageiros');
+        adicionarBot(t.chatAereo.perguntaPassageiros);
+        return;
+      }
 
       if (etapa === 'passageiros') {
         const n = parseInt(texto.replace(/\D/g, ''), 10);
@@ -217,6 +245,8 @@ export function ChatbotAereo({ visivel, aoFechar }: Props) {
 
   // Quais controles aparecem no rodapé conforme a etapa.
   const mostraCampoTexto =
+    etapa === 'origem' ||
+    etapa === 'destino' ||
     etapa === 'passageiros' ||
     etapa === 'nomes' ||
     etapa === 'ida' ||
