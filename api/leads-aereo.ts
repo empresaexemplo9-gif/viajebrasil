@@ -125,11 +125,21 @@ function montarEmail(tipo: 'inicio' | 'completo', corpo: Record<string, any>) {
   const volta = lead.dataVolta ?? 'Somente ida';
   const telefone = String(lead.telefone ?? '');
 
-  // Link que abre o WhatsApp já apontando para o cliente, com mensagem pronta.
+  // Link que abre o WhatsApp já apontando para o cliente, com mensagem pronta
+  // que cita o pedido (passageiros, datas e classe) para contextualizar.
   const primeiroNome = (listaNomes[0] ?? '').split(' ')[0] || 'tudo bem';
+  const numeroPax = Number(lead.numeroPassageiros) || listaNomes.length || 1;
+  const ida = String(lead.dataIda ?? '').trim();
+  const classe = String(lead.classe ?? '').trim();
+  const partes: string[] = [`${numeroPax} passageiro${numeroPax === 1 ? '' : 's'}`];
+  if (ida) partes.push(`ida ${ida}`);
+  partes.push(lead.dataVolta ? `volta ${String(lead.dataVolta)}` : 'somente ida');
+  if (classe) partes.push(`classe ${classe}`);
+  const resumoPedido = partes.join(', ');
   const saudacao =
-    `Olá ${primeiroNome}! Sou consultor da ViajeBrasil e recebi seu pedido de ` +
-    `passagem aérea pelo app. Vou te ajudar a encontrar as melhores opções. 😊`;
+    `Olá ${primeiroNome}! Sou consultor da ViajeBrasil. Recebi seu pedido de ` +
+    `passagem aérea (${resumoPedido}) e já vou te ajudar a encontrar as ` +
+    `melhores opções. 😊`;
   const wpp = linkWhatsApp(telefone, saudacao);
 
   const botaoWpp = wpp
