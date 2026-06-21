@@ -75,11 +75,11 @@ export default function Inicio() {
           </Text>
         </View>
         <View style={styles.acoesTopo}>
-          <Pressable style={styles.faleConosco} onPress={() => abrirWhiteLabel('contato')} hitSlop={6}>
+          <Pressable style={styles.faleConosco} hitSlop={6}>
             <Ionicons name="call" size={18} color={cores.textoInverso} />
             <Text style={styles.faleConoscoTexto}>{t.vitrine.faleConosco}</Text>
           </Pressable>
-          <Pressable onPress={() => abrirWhiteLabel()} hitSlop={8}>
+          <Pressable hitSlop={8}>
             <Ionicons name="menu" size={28} color={cores.textoInverso} />
           </Pressable>
         </View>
@@ -111,7 +111,7 @@ export default function Inicio() {
                 key={c.chave}
                 style={[styles.card, c.selecionado && { borderColor: cores.verde, borderWidth: 2 }, c.emBreve && { opacity: 0.85 }]}
                 disabled={c.emBreve}
-                onPress={() => abrirWhiteLabel(c.chave)}
+                onPress={c.chave === 'onibus' ? () => abrirWhiteLabel('onibus') : undefined}
               >
                 <View style={styles.cardTopo}>
                   <Text style={styles.cardEmoji}>{c.emoji}</Text>
@@ -148,7 +148,7 @@ export default function Inicio() {
                 <Text style={styles.bannerPreco}>
                   <Text style={styles.bannerAPartir}>{t.vitrine.aPartirDe} </Text>R$ {d.preco}
                 </Text>
-                <Pressable style={styles.btnVerde} onPress={() => abrirWhiteLabel('onibus')}>
+                <Pressable style={styles.btnVerde}>
                   <Text style={styles.btnVerdeTexto}>{t.vitrine.verHorarios}</Text>
                 </Pressable>
               </View>
@@ -160,7 +160,7 @@ export default function Inicio() {
         <View style={styles.bloco}>
           <View style={styles.secaoTopo}>
             <Text style={styles.secaoTitulo}>{t.vitrine.ofertasTitulo}</Text>
-            <Pressable onPress={() => abrirWhiteLabel('ofertas')}>
+            <Pressable>
               <Text style={styles.verTodas}>{t.vitrine.verTodasOfertas} →</Text>
             </Pressable>
           </View>
@@ -179,7 +179,7 @@ export default function Inicio() {
                     <Text style={styles.ofertaAPartir}>{t.vitrine.aPartirDe} </Text>
                     <Text style={{ color: cores.verde, fontWeight: '800' }}>R$ {o.preco}</Text>
                   </Text>
-                  <Pressable style={styles.btnVerde} onPress={() => abrirWhiteLabel('onibus')}>
+                  <Pressable style={styles.btnVerde}>
                     <Text style={styles.btnVerdeTexto}>{t.vitrine.verOpcoes}</Text>
                   </Pressable>
                 </View>
@@ -224,7 +224,7 @@ export default function Inicio() {
               keyboardType="email-address"
               autoCapitalize="none"
             />
-            <Pressable style={styles.btnVerde} onPress={() => abrirWhiteLabel('newsletter')}>
+            <Pressable style={styles.btnVerde}>
               <Text style={styles.btnVerdeTexto}>{t.vitrine.cadastrar}</Text>
             </Pressable>
           </View>
@@ -235,11 +235,11 @@ export default function Inicio() {
           <Text style={styles.rodapeBaixe}>{t.vitrine.baixeApp}</Text>
           <Text style={styles.rodapeBaixeSub}>{t.vitrine.baixeAppSub}</Text>
           <View style={styles.lojas}>
-            <Pressable style={styles.loja} onPress={() => abrirWhiteLabel('android')}>
+            <Pressable style={styles.loja}>
               <Ionicons name="logo-google-playstore" size={20} color={cores.textoInverso} />
               <Text style={styles.lojaTexto}>Google Play</Text>
             </Pressable>
-            <Pressable style={styles.loja} onPress={() => abrirWhiteLabel('ios')}>
+            <Pressable style={styles.loja}>
               <Ionicons name="logo-apple" size={20} color={cores.textoInverso} />
               <Text style={styles.lojaTexto}>App Store</Text>
             </Pressable>
@@ -264,7 +264,7 @@ export default function Inicio() {
           <Text style={styles.rodapeRotulo}>{t.vitrine.sigaNos}</Text>
           <View style={styles.social}>
             {SOCIAL.map((s) => (
-              <Pressable key={s} onPress={() => abrirWhiteLabel('social')} hitSlop={8}>
+              <Pressable key={s} hitSlop={8}>
                 <Ionicons name={s} size={24} color={cores.textoInverso} />
               </Pressable>
             ))}
@@ -274,11 +274,11 @@ export default function Inicio() {
           <Text style={styles.rodapeEmpresa}>{t.vitrine.empresaNome}</Text>
           <Text style={styles.rodapeCnpj}>{t.vitrine.cnpj}</Text>
           <View style={styles.rodapeLinks}>
-            <Pressable onPress={() => abrirWhiteLabel('privacidade')}>
+            <Pressable>
               <Text style={styles.rodapeLink}>{t.vitrine.politica}</Text>
             </Pressable>
             <Text style={styles.rodapeSep}>·</Text>
-            <Pressable onPress={() => abrirWhiteLabel('termos')}>
+            <Pressable>
               <Text style={styles.rodapeLink}>{t.vitrine.termos}</Text>
             </Pressable>
           </View>
