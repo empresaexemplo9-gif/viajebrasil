@@ -76,16 +76,20 @@ async function registrarLead(tenantSlug: string, lead: Record<string, any>, orig
 
   const nomes: string[] = Array.isArray(lead.nomes) ? lead.nomes.map(String) : [];
   const numero = Number(lead.numeroPassageiros) || nomes.length || 1;
+  const telefone = String(lead.telefone ?? '');
+  const contatoNome = nomes[0] ?? null;
 
   // Mesma transação: define o tenant corrente e insere — `leads_aereo` tem
   // FORCE ROW LEVEL SECURITY, então o INSERT só passa com o tenant batendo.
   await sql.transaction([
     sql`select set_config('app.current_tenant', ${tenantId}, true)`,
     sql`insert into leads_aereo
-          (tenant_id, numero_passageiros, nomes, data_ida, data_volta, classe, origem)
+          (tenant_id, numero_passageiros, nomes, data_ida, data_volta, classe,
+           contato_nome, contato_telefone, origem)
         values
           (${tenantId}, ${numero}, ${nomes}::text[], ${String(lead.dataIda ?? '')},
-           ${lead.dataVolta ?? null}, ${String(lead.classe ?? '')}, ${origem})`,
+           ${lead.dataVolta ?? null}, ${String(lead.classe ?? '')},
+           ${contatoNome}, ${telefone || null}, ${origem})`,
   ]);
 }
 
@@ -116,8 +120,27 @@ function montarEmail(tipo: 'inicio' | 'completo', corpo: Record<string, any>) {
     };
   }
   const lead = (corpo.lead ?? {}) as Record<string, any>;
-  const nomes = Array.isArray(lead.nomes) ? lead.nomes.join(', ') : '—';
+  const listaNomes: string[] = Array.isArray(lead.nomes) ? lead.nomes.map(String) : [];
+  const nomes = listaNomes.length ? listaNomes.join(', ') : '—';
   const volta = lead.dataVolta ?? 'Somente ida';
+  const telefone = String(lead.telefone ?? '');
+
+  // Link que abre o WhatsApp já apontando para o cliente, com mensagem pronta.
+  const primeiroNome = (listaNomes[0] ?? '').split(' ')[0] || 'tudo bem';
+  const saudacao =
+    `Olá ${primeiroNome}! Sou consultor da ViajeBrasil e recebi seu pedido de ` +
+    `passagem aérea pelo app. Vou te ajudar a encontrar as melhores opções. 😊`;
+  const wpp = linkWhatsApp(telefone, saudacao);
+
+  const botaoWpp = wpp
+    ? `<p style="margin:16px 0">
+         <a href="${wpp}" style="background:#25D366;color:#fff;text-decoration:none;
+            padding:12px 18px;border-radius:8px;font-weight:bold;display:inline-block">
+           💬 Falar com o cliente no WhatsApp
+         </a>
+       </p>`
+    : `<p style="color:#E2483D">⚠️ Telefone não informado ou inválido — sem link de WhatsApp.</p>`;
+
   return {
     assunto: '✈️ Novo lead de Passagem Aérea — ViajeBrasil',
     html: `
@@ -128,10 +151,23 @@ function montarEmail(tipo: 'inicio' | 'completo', corpo: Record<string, any>) {
         <li><strong>Ida:</strong> ${escape(String(lead.dataIda ?? '—'))}</li>
         <li><strong>Volta:</strong> ${escape(String(volta))}</li>
         <li><strong>Classe:</strong> ${escape(String(lead.classe ?? '—'))}</li>
+        <li><strong>WhatsApp:</strong> ${escape(telefone || '—')}</li>
       </ul>
+      ${botaoWpp}
       <p style="color:#5A6B85">Origem: ${escape(String(corpo.origem ?? '—'))} ·
          Tenant: ${escape(String(corpo.tenantId ?? '—'))}</p>`,
   };
+}
+
+/**
+ * Monta um link `wa.me` a partir do telefone informado. Mantém só dígitos e
+ * assume DDI do Brasil (55) quando ausente. Retorna `null` se for curto demais.
+ */
+function linkWhatsApp(telefone: string, texto: string): string | null {
+  const digitos = telefone.replace(/\D/g, '');
+  if (digitos.length < 10) return null; // DDD + número
+  const comDDI = digitos.startsWith('55') ? digitos : `55${digitos}`;
+  return `https://wa.me/${comDDI}?text=${encodeURIComponent(texto)}`;
 }
 
 /** Escapa texto para interpolar com segurança no HTML do e-mail. */

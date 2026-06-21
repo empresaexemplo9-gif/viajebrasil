@@ -65,11 +65,14 @@ que publica o app web:
     "nomes": ["Maria Silva", "João Silva"],
     "dataIda": "20/07/2026",
     "dataVolta": "27/07/2026",   // null = somente ida
-    "classe": "Executiva"
+    "classe": "Executiva",
+    "telefone": "(62) 99999-8888"
   } }
 ```
 
-No `tipo: "completo"` a função resolve o tenant pelo slug, faz
+No `tipo: "completo"` a função grava `contato_telefone`/`contato_nome` e gera um
+link `wa.me` no e-mail, para o consultor abrir a conversa com o cliente no
+WhatsApp com uma só clique. A função resolve o tenant pelo slug, faz
 `set_config('app.current_tenant', <uuid>, true)` na mesma transação (ativa o
 RLS) e insere em `leads_aereo`; depois envia o e-mail via Resend.
 
