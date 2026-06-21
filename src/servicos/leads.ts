@@ -25,6 +25,8 @@ export interface LeadAereo {
   /** `null` = somente ida. */
   dataVolta: string | null;
   classe: string;
+  /** WhatsApp/telefone de contato do cliente (com DDD). */
+  telefone: string;
 }
 
 /** Tipo do evento enviado ao backend. */

@@ -91,8 +91,10 @@ export const ptBR = {
     perguntaDataIda: 'Qual a data de ida? (ex.: 20/07/2026)',
     perguntaDataVolta: 'E a data de volta? (ex.: 27/07/2026)',
     somenteIda: 'Somente ida',
-    perguntaClasse: 'Por fim, qual a sua preferência de classe?',
+    perguntaClasse: 'Qual a sua preferência de classe?',
     classes: ['Econômica', 'Executiva', 'Primeira Classe', 'Sem preferência'],
+    perguntaContato:
+      'Por fim, qual o seu WhatsApp com DDD? Assim o consultor já te chama por lá. (ex.: (62) 99999-8888)',
     resumoTitulo: 'Perfeito! Registrei os seguintes dados da sua viagem:',
     resumoPassageiros: (n: number) =>
       `• Passageiros: ${n} ${n === 1 ? 'pessoa' : 'pessoas'}`,
@@ -100,6 +102,7 @@ export const ptBR = {
     resumoIda: (d: string) => `• Ida: ${d}`,
     resumoVolta: (d: string) => `• Volta: ${d}`,
     resumoClasse: (c: string) => `• Classe: ${c}`,
+    resumoContato: (tel: string) => `• WhatsApp: ${tel}`,
     direcionando:
       'Vou te direcionar para um consultor para atendê-lo(a) com as melhores opções. 💚',
     encerramento:
@@ -110,6 +113,7 @@ export const ptBR = {
       'Tivemos um problema para avisar o consultor agora, mas seus dados foram registrados — ele entrará em contato assim que possível.',
     erroNumero: 'Por favor, informe um número de passageiros válido (de 1 a 9).',
     erroTexto: 'Por favor, escreva uma resposta para continuarmos.',
+    erroTelefone: 'Por favor, informe um WhatsApp válido com DDD (ex.: (62) 99999-8888).',
   },
   busca: {
     origem: 'Origem',

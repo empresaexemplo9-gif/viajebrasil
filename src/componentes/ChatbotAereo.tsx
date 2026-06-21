@@ -31,7 +31,7 @@ import {
 } from '../servicos';
 
 /** Etapas da conversa, em ordem. */
-type Etapa = 'passageiros' | 'nomes' | 'ida' | 'volta' | 'classe' | 'final';
+type Etapa = 'passageiros' | 'nomes' | 'ida' | 'volta' | 'classe' | 'contato' | 'final';
 
 interface Mensagem {
   id: string;
@@ -97,6 +97,7 @@ export function ChatbotAereo({ visivel, aoFechar }: Props) {
       dataIda: dados.current.dataIda ?? '',
       dataVolta: dados.current.dataVolta ?? null,
       classe: dados.current.classe ?? '',
+      telefone: dados.current.telefone ?? '',
     };
 
     setEtapa('final');
@@ -108,6 +109,7 @@ export function ChatbotAereo({ visivel, aoFechar }: Props) {
         t.chatAereo.resumoIda(lead.dataIda),
         t.chatAereo.resumoVolta(lead.dataVolta ?? t.chatAereo.somenteIda),
         t.chatAereo.resumoClasse(lead.classe),
+        t.chatAereo.resumoContato(lead.telefone),
       ].join('\n'),
     );
 
@@ -171,8 +173,21 @@ export function ChatbotAereo({ visivel, aoFechar }: Props) {
         adicionarBot(t.chatAereo.perguntaClasse);
         return;
       }
+
+      if (etapa === 'contato') {
+        // Exige ao menos alguns dígitos para ser um telefone plausível.
+        if (texto.replace(/\D/g, '').length < 8) {
+          adicionarCliente(texto);
+          adicionarBot(t.chatAereo.erroTelefone);
+          return;
+        }
+        dados.current.telefone = texto;
+        adicionarCliente(texto);
+        void finalizar();
+        return;
+      }
     },
-    [etapa, adicionarBot, adicionarCliente],
+    [etapa, adicionarBot, adicionarCliente, finalizar],
   );
 
   /** Botão "Somente ida" na etapa de volta. */
@@ -183,14 +198,15 @@ export function ChatbotAereo({ visivel, aoFechar }: Props) {
     adicionarBot(t.chatAereo.perguntaClasse);
   }, [adicionarBot, adicionarCliente]);
 
-  /** Escolha de classe (chips) — encerra a coleta e finaliza. */
+  /** Escolha de classe (chips) — pede o contato antes de finalizar. */
   const escolherClasse = useCallback(
     (classe: string) => {
       dados.current.classe = classe;
       adicionarCliente(classe);
-      void finalizar();
+      setEtapa('contato');
+      adicionarBot(t.chatAereo.perguntaContato);
     },
-    [adicionarCliente, finalizar],
+    [adicionarBot, adicionarCliente],
   );
 
   const enviarEntrada = useCallback(() => {
@@ -200,7 +216,12 @@ export function ChatbotAereo({ visivel, aoFechar }: Props) {
   }, [entrada, responder]);
 
   // Quais controles aparecem no rodapé conforme a etapa.
-  const mostraCampoTexto = etapa === 'passageiros' || etapa === 'nomes' || etapa === 'ida' || etapa === 'volta';
+  const mostraCampoTexto =
+    etapa === 'passageiros' ||
+    etapa === 'nomes' ||
+    etapa === 'ida' ||
+    etapa === 'volta' ||
+    etapa === 'contato';
   const mostraClasses = etapa === 'classe';
 
   return (
@@ -285,7 +306,13 @@ export function ChatbotAereo({ visivel, aoFechar }: Props) {
                   onChangeText={setEntrada}
                   onSubmitEditing={enviarEntrada}
                   returnKeyType="send"
-                  keyboardType={etapa === 'passageiros' ? 'number-pad' : 'default'}
+                  keyboardType={
+                    etapa === 'passageiros'
+                      ? 'number-pad'
+                      : etapa === 'contato'
+                        ? 'phone-pad'
+                        : 'default'
+                  }
                   autoFocus={false}
                 />
                 <Pressable
