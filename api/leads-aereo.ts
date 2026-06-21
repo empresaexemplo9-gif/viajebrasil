@@ -42,7 +42,13 @@ export default async function handler(req: Req, res: Res) {
 
   try {
     if (tipo === 'completo') {
-      await registrarLead(tenantSlug, corpo.lead ?? {}, String(corpo.origem ?? ''));
+      // Persistência é melhor-esforço: se o banco falhar (ex.: migração ainda
+      // não aplicada), seguimos para garantir o e-mail ao consultor.
+      try {
+        await registrarLead(tenantSlug, corpo.lead ?? {}, String(corpo.origem ?? ''));
+      } catch (e) {
+        console.error('[leads-aereo] persistência falhou (seguindo com o e-mail):', e);
+      }
     }
     await notificarConsultor(tipo, corpo);
     return res.status(200).json({ ok: true });
