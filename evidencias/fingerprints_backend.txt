@@ -1,0 +1,10 @@
+apibuson
+auth.php / buscar-viagens.php / criar-reserva.php / download-dabpe.php / listar-estacoes.php
+DABPE
+current_tenant_id()
+set_config('app.current_tenant', ...)
+tabelas: leads_aereo, lead_mensagens, atendimentos, atendimento_mensagens, home_ofertas, consultores
+colunas: carga_geral, cliente_token; status: atribuido/em_atendimento
+tenant slug: viajebrasil
+picsum seed prefixo: vb-
+cor ROXO card Corporativo: #6D4FB0

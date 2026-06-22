@@ -1,0 +1,7 @@
+  64:    heroTitulo: 'Sua próxima viagem começa aqui',
+  65:    heroSub: 'Passagens de ônibus e aéreas, hospedagem e pacotes pelo Brasil inteiro.',
+  85:    porQueTitulo: 'Por que viajar com a ViajeBrasil?',
+  88:    seg2Titulo: 'Maior Oferta de Linhas',
+  93:    seg4Sub: 'Compre sua passagem onde estiver pelo nosso aplicativo gratuito.',
+  94:    newsletterTitulo: 'Receba ofertas exclusivas!',
+  101:    compraSegura: 'Compra 100% Segura',
