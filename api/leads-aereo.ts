@@ -13,72 +13,53 @@
  *   CONSULTOR_EMAIL   destino padrão dos leads.
  *   NOTIFY_ON_START   "false" desliga o e-mail no início do chat (padrão: liga).
  */
-import { neon } from '@neondatabase/serverless';
 import { Resend } from 'resend';
-
-// Tipos mínimos da requisição/resposta da Vercel (evita depender de @vercel/node).
-interface Req {
-  method?: string;
-  body?: unknown;
-}
-interface Res {
-  status: (code: number) => Res;
-  json: (body: unknown) => void;
-  setHeader: (chave: string, valor: string) => void;
-  end: (dados?: string) => void;
-}
+import { aplicarCors, corpoJson, responderErro, type Req, type Res } from './_lib/http';
+import { comTenant, obterSql, resolverTenantId } from './_lib/db';
 
 export default async function handler(req: Req, res: Res) {
-  // CORS — o app web é mesma origem; liberar ajuda previews e builds nativos.
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  aplicarCors(res);
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ ok: false, erro: 'método não permitido' });
 
-  const corpo = (typeof req.body === 'string' ? parse(req.body) : (req.body ?? {})) as Record<string, any>;
+  const corpo = corpoJson(req);
   const tipo: 'inicio' | 'completo' = corpo.tipo === 'inicio' ? 'inicio' : 'completo';
   const tenantSlug = String(corpo.tenantId ?? 'viajebrasil');
 
+  let consultorAtribuido: string | null = null;
   try {
     if (tipo === 'completo') {
-      // Persistência é melhor-esforço: se o banco falhar (ex.: migração ainda
-      // não aplicada), seguimos para garantir o e-mail ao consultor.
+      // Persistência + atribuição são melhor-esforço: se o banco falhar (ex.:
+      // migração ainda não aplicada), seguimos para garantir o e-mail.
       try {
-        await registrarLead(tenantSlug, corpo.lead ?? {}, String(corpo.origem ?? ''));
+        consultorAtribuido = await registrarLead(tenantSlug, corpo.lead ?? {}, String(corpo.origem ?? ''));
       } catch (e) {
         console.error('[leads-aereo] persistência falhou (seguindo com o e-mail):', e);
       }
     }
-    await notificarConsultor(tipo, corpo);
+    await notificarConsultor(tipo, corpo, consultorAtribuido);
     return res.status(200).json({ ok: true });
   } catch (e) {
-    console.error('[leads-aereo] falha:', e);
-    return res.status(500).json({ ok: false });
+    return responderErro(res, e);
   }
 }
 
-function parse(s: string): unknown {
-  try {
-    return JSON.parse(s);
-  } catch {
-    return {};
-  }
-}
-
-/** Insere o lead aplicando o tenant corrente (ativa o RLS na transação). */
-async function registrarLead(tenantSlug: string, lead: Record<string, any>, origem: string) {
-  const conexao = process.env.DATABASE_URL;
-  if (!conexao) {
+/**
+ * Insere o lead aplicando o tenant corrente (RLS) e ATRIBUI o consultor por
+ * round-robin (o menos carregado entre os ativos). Retorna o e-mail do
+ * consultor atribuído, ou `null` se não houver banco/consultor.
+ */
+async function registrarLead(
+  tenantSlug: string,
+  lead: Record<string, any>,
+  origem: string,
+): Promise<string | null> {
+  if (!process.env.DATABASE_URL) {
     console.warn('[leads-aereo] DATABASE_URL ausente — pulando persistência');
-    return;
+    return null;
   }
-  const sql = neon(conexao);
-
-  // O dono do banco enxerga `tenants` (RLS habilitada, mas não forçada nela).
-  const tenants = await sql`select id from tenants where slug = ${tenantSlug} limit 1`;
-  const tenantId = tenants[0]?.id as string | undefined;
-  if (!tenantId) throw new Error(`tenant desconhecido: ${tenantSlug}`);
+  const sql = obterSql();
+  const tenantId = await resolverTenantId(sql, tenantSlug);
 
   const nomes: string[] = Array.isArray(lead.nomes) ? lead.nomes.map(String) : [];
   const numero = Number(lead.numeroPassageiros) || nomes.length || 1;
@@ -87,24 +68,54 @@ async function registrarLead(tenantSlug: string, lead: Record<string, any>, orig
   const origemCidade = String(lead.origem ?? '') || null;
   const destinoCidade = String(lead.destino ?? '') || null;
 
-  // Mesma transação: define o tenant corrente e insere — `leads_aereo` tem
-  // FORCE ROW LEVEL SECURITY, então o INSERT só passa com o tenant batendo.
-  await sql.transaction([
-    sql`select set_config('app.current_tenant', ${tenantId}, true)`,
-    sql`insert into leads_aereo
+  // Uma única instrução (CTEs) escolhe o consultor menos carregado entre os
+  // ativos, insere o lead já atribuído e incrementa a carga do escolhido.
+  // `ins`/`upd` modificam dados (rodam sempre); `escolhido` é referenciada.
+  // O set_config (em `comTenant`) roda antes, na MESMA transação (RLS).
+  const [linhas] = await comTenant(sql, tenantId, [
+    sql`
+      with escolhido as (
+        select c.id, u.email
+        from consultores c
+        join usuarios u on u.id = c.usuario_id
+        where c.ativo and u.ativo
+        order by c.carga asc, c.criado_em asc
+        limit 1
+      ),
+      ins as (
+        insert into leads_aereo
           (tenant_id, origem_cidade, destino_cidade, numero_passageiros, nomes,
-           data_ida, data_volta, classe, contato_nome, contato_telefone, origem)
+           data_ida, data_volta, classe, contato_nome, contato_telefone, origem,
+           consultor_id, status)
         values
           (${tenantId}, ${origemCidade}, ${destinoCidade}, ${numero}, ${nomes}::text[],
-           ${String(lead.dataIda ?? '')}, ${lead.dataVolta ?? null},
-           ${String(lead.classe ?? '')}, ${contatoNome}, ${telefone || null}, ${origem})`,
+           ${String(lead.dataIda ?? '')}, ${lead.dataVolta ?? null}, ${String(lead.classe ?? '')},
+           ${contatoNome}, ${telefone || null}, ${origem},
+           (select id from escolhido),
+           case when (select id from escolhido) is not null then 'atribuido' else 'novo' end)
+        returning id
+      ),
+      upd as (
+        update consultores set carga = carga + 1
+        where id = (select id from escolhido)
+        returning id
+      )
+      select (select email from escolhido) as consultor_email
+    `,
   ]);
+
+  const email = linhas?.[0]?.consultor_email as string | undefined;
+  return email ?? null;
 }
 
 /** Envia o e-mail ao consultor via Resend. */
-async function notificarConsultor(tipo: 'inicio' | 'completo', corpo: Record<string, any>) {
+async function notificarConsultor(
+  tipo: 'inicio' | 'completo',
+  corpo: Record<string, any>,
+  consultorAtribuido: string | null,
+) {
   const apiKey = process.env.RESEND_API_KEY;
-  const para = String(corpo.consultorEmail || process.env.CONSULTOR_EMAIL || '');
+  const para = String(consultorAtribuido || corpo.consultorEmail || process.env.CONSULTOR_EMAIL || '');
   const de = process.env.EMAIL_FROM || 'ViajeBrasil <onboarding@resend.dev>';
 
   if (!apiKey || !para) {

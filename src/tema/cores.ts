@@ -33,6 +33,8 @@ export const cores = {
   // Utilidades
   sombra: '#15315E',
   transparente: 'transparent',
+  /** Overlay escuro para legibilidade de texto sobre imagens. */
+  overlayEscuro: 'rgba(13,28,54,0.55)',
 } as const;
 
 /** Degradês usados em cabeçalhos e cartões de destaque. */
