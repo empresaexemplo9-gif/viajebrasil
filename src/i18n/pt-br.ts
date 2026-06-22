@@ -117,7 +117,7 @@ export const ptBR = {
     uf: 'UF',
     ufPh: 'UF',
     inverter: 'Inverter origem e destino',
-    dataIda: 'Data de ida (opcional)',
+    dataIda: 'Data de ida',
     dataPh: 'dd/mm/aaaa',
     buscar: 'Buscar passagens',
     aviso: 'A compra é finalizada no canal oficial, com total segurança. 🔒',

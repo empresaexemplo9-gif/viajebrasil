@@ -28,7 +28,9 @@ export default function Onibus() {
     setDestinoUf(origemUf);
   };
 
-  const podeBuscar = origem.trim() && origemUf.trim() && destino.trim() && destinoUf.trim();
+  const podeBuscar = Boolean(
+    origem.trim() && origemUf.trim() && destino.trim() && destinoUf.trim() && paraISO(dataIda),
+  );
 
   const buscar = () => {
     if (!podeBuscar) return;
