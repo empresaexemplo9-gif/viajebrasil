@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     borderRadius: raio.pill,
     paddingHorizontal: 10,
-    paddingVertical: 3,
+    paddingVertical: 5,
   },
   texto: { ...tipografia.rotuloMicro },
 });

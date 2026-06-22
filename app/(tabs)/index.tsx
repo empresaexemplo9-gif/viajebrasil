@@ -20,8 +20,9 @@ import { abrirWhiteLabel, listarOfertasHome } from '../../src/servicos';
 /** Roxo do card "Corporativo" (só nesta vitrine, fora da paleta base). */
 const ROXO = '#6D4FB0';
 
-/** Imagem ilustrativa genérica e estável (Lorem Picsum), determinística por seed. */
-const foto = (seed: string, w = 640) => `https://picsum.photos/seed/vb-${seed}/${w}/400`;
+/** Imagem ilustrativa genérica e estável (Lorem Picsum), determinística por seed.
+ *  Resolução mais alta (≈3:2) para telas retina enquanto as fotos reais não chegam. */
+const foto = (seed: string, w = 900) => `https://picsum.photos/seed/vb-${seed}/${w}/${Math.round(w * 0.66)}`;
 
 const CARDS = [
   { chave: 'onibus', emoji: '🚌', titulo: t.vitrine.onibusTitulo, sub: t.vitrine.onibusSub, cor: cores.verde, selecionado: true },
@@ -48,10 +49,10 @@ interface OfertaView {
 
 /** Fallback estático (usado quando o backend não tem ofertas/está fora). */
 const OFERTAS_FALLBACK: OfertaView[] = [
-  { chave: 'rio', titulo: 'Rio de Janeiro', preco: 189, badge: '20% OFF', imagem: foto('rio', 500) },
-  { chave: 'bh', titulo: 'Belo Horizonte – MG', preco: 149, badge: '15% OFF', imagem: foto('bh', 500) },
-  { chave: 'sao', titulo: 'São Paulo – SP', preco: 129, badge: '10% OFF', imagem: foto('sao', 500) },
-  { chave: 'ssa', titulo: 'Salvador – BA', preco: 119, badge: '10% OFF', imagem: foto('ssa', 500) },
+  { chave: 'rio', titulo: 'Rio de Janeiro', preco: 189, badge: '20% OFF', imagem: foto('rio', 800) },
+  { chave: 'bh', titulo: 'Belo Horizonte – MG', preco: 149, badge: '15% OFF', imagem: foto('bh', 800) },
+  { chave: 'sao', titulo: 'São Paulo – SP', preco: 129, badge: '10% OFF', imagem: foto('sao', 800) },
+  { chave: 'ssa', titulo: 'Salvador – BA', preco: 119, badge: '10% OFF', imagem: foto('ssa', 800) },
 ];
 
 const FEATURES = [
@@ -81,7 +82,7 @@ export default function Inicio() {
             titulo: o.cidade ? `${o.titulo} · ${o.cidade}` : o.titulo,
             preco: o.preco != null ? Number(o.preco) : undefined,
             badge: o.badge ?? undefined,
-            imagem: o.imagem_url || foto(o.titulo || o.id, 500),
+            imagem: o.imagem_url || foto(o.titulo || o.id, 800),
           })),
         );
       })
@@ -100,7 +101,7 @@ export default function Inicio() {
         topo={
           <View style={styles.heroTopo}>
             <View style={styles.marcaArea}>
-              <LogoMarca tamanho={36} />
+              <LogoMarca tamanho={48} />
               <Text style={styles.marca}>
                 <Text style={{ color: cores.textoInverso }}>viaje</Text>
                 <Text style={{ color: cores.verde }}>brasil</Text>
