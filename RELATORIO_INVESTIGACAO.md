@@ -15,7 +15,7 @@
 2. **Uma exceção de segurança a tratar:** o seed `backend/sql/005_seed_exemplo.sql` traz credenciais‑padrão (`admin@viajebrasil.com` / `123456`, e os dois consultores) em texto. Como o repo foi público, **essas credenciais são conhecidas**. Se você rodou o seed sem trocar, **mude as senhas já** (especialmente o admin) — ver §7.
 3. **Stack real deste repo ≠ stack do site suspeito.** Este projeto é **Expo/React Native + Vercel Functions + Neon Postgres** (não Supabase). O repo **teve** Supabase no passado ("sobras do contábil‑pro", removido). Logo, se houve cópia, ela tende a ser de **marca + frontend/conteúdo**, não do meu backend Neon.
 4. **Busca no GitHub:** meus identificadores **únicos** de backend (`apibuson`, `carga_geral`, `leads_aereo`, `current_tenant_id`, `cliente_token`) **não aparecem em nenhum repositório público**. Não há cópia pública do backend indexada.
-5. **Lead principal:** existe um repositório público **`mariofalluna-spec/VIAJE-BRASIL`** (TypeScript, criado em **2026-06-18**), bem dentro da janela deste projeto. **Precisa ser inspecionado por você** (a sessão não tem acesso de leitura a repositórios de terceiros, e ele ainda não está indexado na busca de código do GitHub).
+5. **Lead `mariofalluna-spec/VIAJE-BRASIL`: DESCARTADO** após análise do código (zip enviado). É outro produto — um app pessoal "Viaje Familiar Brasil" (itinerário/divisão de gastos, Google AI Studio, Vite/Drizzle/Supabase próprio). **Zero** fingerprint meu, **zero** asset igual, marca ausente. Coincidência de nome. Ver §4.1.
 6. **Coleta do site suspeito: bloqueada aqui.** A rede do ambiente nega o host (`HTTP 403 host_not_allowed`). As etapas 4–6 do plano (baixar HTML/bundles/source maps/assets e comparar) precisam rodar **na sua máquina** — script pronto em `evidencias/coletar_suspeito.sh`.
 
 ---
@@ -78,7 +78,21 @@ Salvas em `evidencias/fingerprints_*.txt` e `evidencias/hashes_assets.txt`.
   1. **`mariofalluna-spec/VIAJE-BRASIL`** — TypeScript, público, **2026-06-18** → **principal suspeito a inspecionar**.
   2. `AMDEVDESIGN/viajebrasil` — HTML, 2025‑09‑19 (anterior a este projeto; provavelmente sem relação).
   3. `empresaexemplo9-gif/viajebrasil` — este repo (privado).
-- Leitura direta de `mariofalluna-spec/VIAJE-BRASIL` **negada** nesta sessão (escopo restrito ao seu repo) e ele **ainda não está indexado** para busca de código (criado há poucos dias). **Você precisa abri‑lo/cloná‑lo** (ver §6).
+- Leitura direta de `mariofalluna-spec/VIAJE-BRASIL` foi negada na sessão, mas o **zip do repo foi fornecido** e analisado — ver §4.1.
+
+### 4.1 Análise de `mariofalluna-spec/VIAJE-BRASIL` — **DESCARTADO**
+
+Conteúdo real (de `metadata.json`/código): **"Viaje Familiar Brasil"** — app pessoal de **itinerário e divisão de gastos** de uma viagem em família ao Brasil (descrição em espanhol), gerado no **Google AI Studio** (`@google/genai`, `GEMINI_API_KEY`). Stack: **Vite + React 19 + Express + Drizzle + Supabase próprio** (`hdyyunheifjheunlgcmr.supabase.co`, anon key hardcoded — é dele, não meu). Dados: avatares de jogadores (Pelé, Ronaldo…), dias de viagem, despesas.
+
+| Sinal | Resultado |
+|---|---|
+| Fingerprints fortes (apibuson, leads_aereo, carga_geral, current_tenant_id, cliente_token, `.php`, #6D4FB0) | **nenhum** |
+| Textos verbatim / paleta exata | **nenhum** |
+| Marca (CNPJ, WhatsApp, "Realizando Sonhos", domínio) | **nenhum** (só "Viaje Brasil" genérico em 2 lugares) |
+| Hashes de assets | **nenhum** bate |
+| Stack | diferente do meu (Expo/Neon vs Vite/Drizzle/Supabase) |
+
+**Veredito:** não é cópia. Coincidência do nome genérico "Viaje Brasil". Sem relação com o caso.
 
 ---
 
