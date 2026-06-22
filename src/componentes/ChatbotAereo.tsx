@@ -225,7 +225,7 @@ export function ChatbotAereo({ visivel, aoFechar }: Props) {
     adicionarBot(t.chatAereo.perguntaClasse);
   }, [adicionarBot, adicionarCliente]);
 
-  /** Escolha de classe (chips) — pede o contato antes de finalizar. */
+  /** Escolha de horário (chips) — encerra a coleta; o consultor assume o chat. */
   const escolherClasse = useCallback(
     (classe: string) => {
       dados.current.classe = classe;

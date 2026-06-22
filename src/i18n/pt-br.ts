@@ -123,7 +123,7 @@ export const ptBR = {
     resumoContato: (tel: string) => `• WhatsApp: ${tel}`,
     direcionando: 'Obrigado pelas informações! 🙌',
     encerramento:
-      'Jajá um de nossos consultores vai te atender com seu orçamento.',
+      'Jajá um de nossos consultores vai continuar seu atendimento aqui mesmo, neste chat, com o seu orçamento. 💚',
     placeholderResposta: 'Digite sua resposta…',
     enviar: 'Enviar',
     erroEnvio:
