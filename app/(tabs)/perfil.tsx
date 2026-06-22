@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { cores, raio, sombra } from '../../src/tema';
 import { t } from '../../src/i18n';
-import { Botao } from '../../src/componentes';
+import { Botao, Selo } from '../../src/componentes';
 import { useAutenticacao } from '../../src/contextos/AutenticacaoContext';
 import { empresa } from '../../src/dados/empresa';
 
@@ -26,6 +26,13 @@ export default function Perfil() {
           <>
             <Text style={styles.nome}>{usuario?.nome}</Text>
             <Text style={styles.email}>{usuario?.email}</Text>
+            {usuario && (
+              <Selo
+                texto={usuario.papel}
+                tom={ehAdmin ? 'verde' : ehConsultor ? 'amarelo' : 'azul'}
+                style={{ marginTop: 8 }}
+              />
+            )}
           </>
         ) : (
           <>
