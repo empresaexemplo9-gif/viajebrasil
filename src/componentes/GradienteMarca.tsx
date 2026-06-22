@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
+import { type StyleProp, type ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { degrades } from '../tema';
 
@@ -25,12 +25,8 @@ const PONTOS = {
 export function GradienteMarca({ variante = 'marca', direcao = 'diagonal', style, children }: Props) {
   const p = PONTOS[direcao];
   return (
-    <LinearGradient colors={degrades[variante]} start={p.start} end={p.end} style={[styles.base, style]}>
+    <LinearGradient colors={degrades[variante]} start={p.start} end={p.end} style={style}>
       {children}
     </LinearGradient>
   );
 }
-
-const styles = StyleSheet.create({
-  base: { flex: 0 },
-});

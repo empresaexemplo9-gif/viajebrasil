@@ -21,7 +21,7 @@ interface Props {
 export function HeroGradiente({ eyebrow, titulo, subtitulo, children, topo }: Props) {
   const insets = useSafeAreaInsets();
   return (
-    <GradienteMarca variante="noite" style={[styles.base, { paddingTop: insets.top + espaco.md }]}>
+    <GradienteMarca variante="noite" style={[styles.base, { paddingTop: insets.top + espaco.lg }]}>
       {topo}
       <View style={styles.conteudo}>
         {eyebrow ? <Text style={styles.eyebrow}>{eyebrow.toUpperCase()}</Text> : null}
