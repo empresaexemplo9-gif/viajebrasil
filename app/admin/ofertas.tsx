@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Image,
   Modal,
   Platform,
@@ -40,6 +41,19 @@ interface Form {
 const FORM_VAZIO: Form = {
   titulo: '', cidade: '', preco: '', imagem_url: '', badge: '', ordem: '0', ativo: true, secao: 'oferta',
 };
+
+/** Confirmação cross-platform (web: window.confirm; nativo: Alert). */
+function confirmar(mensagem: string): Promise<boolean> {
+  if (Platform.OS === 'web') {
+    return Promise.resolve(typeof window !== 'undefined' ? window.confirm(mensagem) : true);
+  }
+  return new Promise((resolve) => {
+    Alert.alert('Confirmar', mensagem, [
+      { text: t.admin.cancelar, style: 'cancel', onPress: () => resolve(false) },
+      { text: t.admin.salvar, style: 'destructive', onPress: () => resolve(true) },
+    ]);
+  });
+}
 
 function paraForm(o: HomeOferta): Form {
   return {
@@ -81,21 +95,41 @@ export default function AdminOfertas() {
 
   const set = (campo: keyof Form, valor: string | boolean) => setForm((f) => (f ? { ...f, [campo]: valor } : f));
 
+  const inserirPadrao = async () => {
+    for (const o of OFERTAS_PADRAO) {
+      await criarOferta({
+        titulo: o.titulo,
+        cidade: o.cidade,
+        preco: o.preco,
+        badge: o.badge,
+        imagem_url: o.imagem_url,
+        ordem: o.ordem,
+        ativo: true,
+        secao: o.secao,
+      });
+    }
+  };
+
   const popular = async () => {
     setPopulando(true);
     try {
-      for (const o of OFERTAS_PADRAO) {
-        await criarOferta({
-          titulo: o.titulo,
-          cidade: o.cidade,
-          preco: o.preco,
-          badge: o.badge,
-          imagem_url: o.imagem_url,
-          ordem: o.ordem,
-          ativo: true,
-          secao: o.secao,
-        });
-      }
+      await inserirPadrao();
+      await carregar();
+    } catch {
+      // ignora
+    } finally {
+      setPopulando(false);
+    }
+  };
+
+  // Limpa TUDO e recoloca as ofertas padrão (corrige a home após testes).
+  const restaurar = async () => {
+    if (!(await confirmar(t.admin.restaurarConfirma))) return;
+    setPopulando(true);
+    try {
+      const atuais = await listarOfertasAdmin();
+      for (const o of atuais) await excluirOferta(o.id);
+      await inserirPadrao();
       await carregar();
     } catch {
       // ignora
@@ -211,6 +245,17 @@ export default function AdminOfertas() {
             <Text style={styles.btnNovaTexto}>{t.admin.nova}</Text>
           </Pressable>
         </View>
+
+        {!carregando && ofertas.length > 0 && (
+          <Pressable style={styles.btnRestaurar} onPress={restaurar} disabled={populando}>
+            {populando ? (
+              <ActivityIndicator size="small" color={cores.azul} />
+            ) : (
+              <Ionicons name="refresh" size={16} color={cores.azul} />
+            )}
+            <Text style={styles.btnRestaurarTexto}>{t.admin.restaurarPadrao}</Text>
+          </Pressable>
+        )}
 
         {carregando ? (
           <ActivityIndicator size="large" color={cores.verde} style={{ marginTop: espaco.xl }} />
@@ -349,6 +394,17 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
   },
   btnNovaTexto: { ...tipografia.legenda, color: cores.textoInverso },
+  btnRestaurar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderColor: cores.azul,
+    borderRadius: raio.pill,
+    paddingVertical: 10,
+  },
+  btnRestaurarTexto: { ...tipografia.legenda, color: cores.azul },
 
   vazio: { alignItems: 'center', gap: espaco.md, paddingVertical: espaco.xl },
   vazioTexto: { ...tipografia.corpoSuave, color: cores.textoSuave, textAlign: 'center' },
