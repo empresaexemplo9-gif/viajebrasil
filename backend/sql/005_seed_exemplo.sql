@@ -14,7 +14,7 @@ values (
   (select id from tenants where slug = 'viajebrasil'),
   'admin@viajebrasil.com',                       -- << troque
   'admin', 'Administrador', true,
-  crypt('troque-esta-senha-admin', gen_salt('bf', 11))   -- << troque
+  crypt('123456', gen_salt('bf', 11))   -- << troque
 )
 on conflict (tenant_id, email) do update
   set papel = 'admin', nome = excluded.nome, ativo = true,
@@ -26,10 +26,10 @@ insert into usuarios (tenant_id, email, papel, nome, ativo, password_hash)
 values
   ((select id from tenants where slug = 'viajebrasil'),
    'consultor1@viajebrasil.com', 'consultor', 'Consultor Um', true,
-   crypt('troque-esta-senha-1', gen_salt('bf', 11))),
+   crypt('123456', gen_salt('bf', 11))),
   ((select id from tenants where slug = 'viajebrasil'),
    'consultor2@viajebrasil.com', 'consultor', 'Consultor Dois', true,
-   crypt('troque-esta-senha-2', gen_salt('bf', 11)))
+   crypt('123456', gen_salt('bf', 11)))
 on conflict (tenant_id, email) do update
   set papel = 'consultor', nome = excluded.nome, ativo = true,
       password_hash = excluded.password_hash;
