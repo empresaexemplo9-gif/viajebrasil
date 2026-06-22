@@ -14,7 +14,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { cores, espaco, raio, tipografia } from '../../src/tema';
 import { t } from '../../src/i18n';
-import { Botao, Campo, Cartao, Selo } from '../../src/componentes';
+import { Botao, Campo, Cartao, Chip, Selo } from '../../src/componentes';
 import {
   atualizarOferta,
   criarOferta,
@@ -23,7 +23,7 @@ import {
   listarOfertasAdmin,
 } from '../../src/servicos';
 import { OFERTAS_PADRAO } from '../../src/dados/ofertasPadrao';
-import type { HomeOferta } from '../../src/tipos';
+import type { HomeOferta, SecaoHome } from '../../src/tipos';
 
 interface Form {
   id?: string;
@@ -34,9 +34,12 @@ interface Form {
   badge: string;
   ordem: string;
   ativo: boolean;
+  secao: SecaoHome;
 }
 
-const FORM_VAZIO: Form = { titulo: '', cidade: '', preco: '', imagem_url: '', badge: '', ordem: '0', ativo: true };
+const FORM_VAZIO: Form = {
+  titulo: '', cidade: '', preco: '', imagem_url: '', badge: '', ordem: '0', ativo: true, secao: 'oferta',
+};
 
 function paraForm(o: HomeOferta): Form {
   return {
@@ -48,6 +51,7 @@ function paraForm(o: HomeOferta): Form {
     badge: o.badge ?? '',
     ordem: String(o.ordem ?? 0),
     ativo: o.ativo !== false,
+    secao: o.secao === 'destaque' ? 'destaque' : 'oferta',
   };
 }
 
@@ -89,6 +93,7 @@ export default function AdminOfertas() {
           imagem_url: o.imagem_url,
           ordem: o.ordem,
           ativo: true,
+          secao: o.secao,
         });
       }
       await carregar();
@@ -125,6 +130,7 @@ export default function AdminOfertas() {
         badge: form.badge.trim() || null,
         ordem: Number(form.ordem) || 0,
         ativo: form.ativo,
+        secao: form.secao,
       };
       if (form.id) await atualizarOferta(form.id, dados);
       else await criarOferta(dados);
@@ -150,6 +156,47 @@ export default function AdminOfertas() {
       setSalvando(false);
     }
   };
+
+  const renderCard = (o: HomeOferta) => (
+    <Pressable
+      key={o.id}
+      style={styles.cardWrap}
+      onPress={() => { setErroForm(''); setForm(paraForm(o)); }}
+    >
+      <Cartao style={styles.card} elevacao="md">
+        <View>
+          {o.imagem_url ? (
+            <Image source={{ uri: o.imagem_url }} style={styles.cardImg} />
+          ) : (
+            <View style={[styles.cardImg, styles.semImg]}>
+              <Ionicons name="image-outline" size={26} color={cores.textoClaro} />
+            </View>
+          )}
+          {o.badge ? <Selo texto={o.badge} tom="laranja" style={styles.cardBadge} /> : null}
+          {o.ativo === false ? <Selo texto={t.admin.inativa} tom="neutro" style={styles.cardBadgeDir} /> : null}
+          <View style={styles.editarHint}>
+            <Ionicons name="create" size={14} color={cores.textoInverso} />
+          </View>
+        </View>
+        <View style={styles.cardCorpo}>
+          <Text style={styles.cardCidade} numberOfLines={1}>{o.cidade || o.titulo}</Text>
+          {o.preco != null && (
+            <Text style={styles.cardPreco}>
+              <Text style={styles.cardAPartir}>{t.vitrine.aPartirDe} </Text>
+              <Text style={styles.cardValor}>R$ {Number(o.preco)}</Text>
+            </Text>
+          )}
+          <View style={styles.btnVerde}>
+            <Text style={styles.btnVerdeTexto}>{t.vitrine.verOpcoes}</Text>
+          </View>
+          <Text style={styles.toqueEditar}>{t.admin.toqueEditar}</Text>
+        </View>
+      </Cartao>
+    </Pressable>
+  );
+
+  const destaques = ofertas.filter((o) => o.secao === 'destaque');
+  const grade = ofertas.filter((o) => o.secao !== 'destaque');
 
   return (
     <View style={styles.tela}>
@@ -181,45 +228,16 @@ export default function AdminOfertas() {
             />
           </Cartao>
         ) : (
-          <View style={styles.grade}>
-            {ofertas.map((o) => (
-              <Pressable
-                key={o.id}
-                style={styles.cardWrap}
-                onPress={() => { setErroForm(''); setForm(paraForm(o)); }}
-              >
-                <Cartao style={styles.card} elevacao="md">
-                  <View>
-                    {o.imagem_url ? (
-                      <Image source={{ uri: o.imagem_url }} style={styles.cardImg} />
-                    ) : (
-                      <View style={[styles.cardImg, styles.semImg]}>
-                        <Ionicons name="image-outline" size={26} color={cores.textoClaro} />
-                      </View>
-                    )}
-                    {o.badge ? <Selo texto={o.badge} tom="laranja" style={styles.cardBadge} /> : null}
-                    {o.ativo === false ? <Selo texto={t.admin.inativa} tom="neutro" style={styles.cardBadgeDir} /> : null}
-                    <View style={styles.editarHint}>
-                      <Ionicons name="create" size={14} color={cores.textoInverso} />
-                    </View>
-                  </View>
-                  <View style={styles.cardCorpo}>
-                    <Text style={styles.cardCidade} numberOfLines={1}>{o.cidade || o.titulo}</Text>
-                    {o.preco != null && (
-                      <Text style={styles.cardPreco}>
-                        <Text style={styles.cardAPartir}>{t.vitrine.aPartirDe} </Text>
-                        <Text style={styles.cardValor}>R$ {Number(o.preco)}</Text>
-                      </Text>
-                    )}
-                    <View style={styles.btnVerde}>
-                      <Text style={styles.btnVerdeTexto}>{t.vitrine.verOpcoes}</Text>
-                    </View>
-                    <Text style={styles.toqueEditar}>{t.admin.toqueEditar}</Text>
-                  </View>
-                </Cartao>
-              </Pressable>
-            ))}
-          </View>
+          <>
+            {destaques.length > 0 && (
+              <>
+                <Text style={styles.grupoTitulo}>{t.admin.grupoDestaques}</Text>
+                <View style={styles.grade}>{destaques.map(renderCard)}</View>
+              </>
+            )}
+            <Text style={styles.grupoTitulo}>{t.admin.grupoOfertas}</Text>
+            <View style={styles.grade}>{grade.map(renderCard)}</View>
+          </>
         )}
       </ScrollView>
 
@@ -236,8 +254,23 @@ export default function AdminOfertas() {
 
             {form && (
               <ScrollView contentContainerStyle={styles.modalConteudo} showsVerticalScrollIndicator={false}>
+                {/* Seção */}
+                <Text style={styles.rotulo}>{t.admin.secao}</Text>
+                <View style={styles.chips}>
+                  <Chip
+                    rotulo={t.admin.secaoDestaque}
+                    selecionado={form.secao === 'destaque'}
+                    aoPressionar={() => set('secao', 'destaque')}
+                  />
+                  <Chip
+                    rotulo={t.admin.secaoOferta}
+                    selecionado={form.secao === 'oferta'}
+                    aoPressionar={() => set('secao', 'oferta')}
+                  />
+                </View>
+
                 {/* Imagem */}
-                <Text style={styles.rotulo}>{t.admin.fImagem}</Text>
+                <Text style={[styles.rotulo, { marginTop: espaco.sm }]}>{t.admin.fImagem}</Text>
                 <View style={styles.fotoArea}>
                   {form.imagem_url ? (
                     <Image source={{ uri: form.imagem_url }} style={styles.fotoPreview} />
@@ -319,6 +352,8 @@ const styles = StyleSheet.create({
 
   vazio: { alignItems: 'center', gap: espaco.md, paddingVertical: espaco.xl },
   vazioTexto: { ...tipografia.corpoSuave, color: cores.textoSuave, textAlign: 'center' },
+  grupoTitulo: { ...tipografia.secao, color: cores.azulMarinho, marginTop: espaco.sm },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: espaco.sm },
 
   grade: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: espaco.md },
   cardWrap: { width: '47%', flexGrow: 1 },

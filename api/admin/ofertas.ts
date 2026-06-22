@@ -23,11 +23,12 @@ export default async function handler(req: Req, res: Res) {
     if (req.method === 'POST') {
       const o = corpoJson(req);
       if (!o.titulo) throw new HttpErro(400, 'título é obrigatório');
+      const secao = o.secao === 'destaque' ? 'destaque' : 'oferta';
       const [linhas] = await comTenant(sql, tid, [
-        sql`insert into home_ofertas (tenant_id, titulo, cidade, preco, imagem_url, badge, ordem, ativo)
+        sql`insert into home_ofertas (tenant_id, titulo, cidade, preco, imagem_url, badge, ordem, ativo, secao)
             values (${tid}, ${String(o.titulo)}, ${o.cidade ?? null}, ${o.preco ?? null},
                     ${o.imagem_url ?? null}, ${o.badge ?? null}, ${Number(o.ordem) || 0},
-                    ${o.ativo === false ? false : true})
+                    ${o.ativo === false ? false : true}, ${secao})
             returning *`,
       ]);
       return res.status(200).json({ oferta: linhas?.[0] });
@@ -45,7 +46,8 @@ export default async function handler(req: Req, res: Res) {
               imagem_url = coalesce(${o.imagem_url ?? null}, imagem_url),
               badge = coalesce(${o.badge ?? null}, badge),
               ordem = coalesce(${o.ordem ?? null}, ordem),
-              ativo = coalesce(${typeof o.ativo === 'boolean' ? o.ativo : null}, ativo)
+              ativo = coalesce(${typeof o.ativo === 'boolean' ? o.ativo : null}, ativo),
+              secao = coalesce(${o.secao === 'destaque' || o.secao === 'oferta' ? o.secao : null}, secao)
             where id = ${id}
             returning *`,
       ]);

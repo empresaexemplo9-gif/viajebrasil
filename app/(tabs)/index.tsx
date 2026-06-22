@@ -14,8 +14,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { cores, espaco, raio, sombras, tipografia } from '../../src/tema';
 import { t } from '../../src/i18n';
-import { Avatar, Cartao, ChatbotAereo, HeroGradiente, LogoMarca, Selo } from '../../src/componentes';
+import { Avatar, BotaoInstalarApp, Cartao, ChatbotAereo, HeroGradiente, LogoMarca, Selo } from '../../src/componentes';
 import { abrirWhiteLabel, listarOfertasHome } from '../../src/servicos';
+import type { HomeOferta } from '../../src/tipos';
 
 /** Roxo do card "Corporativo" (só nesta vitrine, fora da paleta base). */
 const ROXO = '#6D4FB0';
@@ -31,13 +32,6 @@ const CARDS = [
   { chave: 'hospedagem', emoji: '🏨', titulo: t.vitrine.hospedagemTitulo, sub: t.vitrine.hospedagemSub, cor: cores.laranja, emBreve: true },
 ];
 
-const DESTINOS_ALTA = [
-  { cidade: 'Rio de Janeiro', preco: 189, seed: 'rio' },
-  { cidade: 'Salvador', preco: 119, seed: 'ssa' },
-  { cidade: 'São Paulo', preco: 149, seed: 'sao' },
-  { cidade: 'Florianópolis', preco: 199, seed: 'floripa' },
-];
-
 /** Oferta normalizada exibida na vitrine (vem do backend ou do fallback). */
 interface OfertaView {
   chave: string;
@@ -47,12 +41,30 @@ interface OfertaView {
   imagem: string;
 }
 
-/** Fallback estático (usado quando o backend não tem ofertas/está fora). */
+/** Mapeia uma oferta do backend para a forma exibida na vitrine. */
+function paraView(o: HomeOferta): OfertaView {
+  return {
+    chave: o.id,
+    titulo: o.cidade || o.titulo,
+    preco: o.preco != null ? Number(o.preco) : undefined,
+    badge: o.badge ?? undefined,
+    imagem: o.imagem_url || foto(o.titulo || o.id, 800),
+  };
+}
+
+/** Fallbacks estáticos (quando o backend não tem itens/está fora). */
+const DESTAQUES_FALLBACK: OfertaView[] = [
+  { chave: 'rio', titulo: 'Rio de Janeiro', preco: 189, badge: 'Destino em alta', imagem: foto('rio', 800) },
+  { chave: 'ssa', titulo: 'Salvador', preco: 119, badge: 'Destino em alta', imagem: foto('ssa', 800) },
+  { chave: 'sao', titulo: 'São Paulo', preco: 149, badge: 'Destino em alta', imagem: foto('sao', 800) },
+  { chave: 'floripa', titulo: 'Florianópolis', preco: 199, badge: 'Destino em alta', imagem: foto('floripa', 800) },
+];
+
 const OFERTAS_FALLBACK: OfertaView[] = [
-  { chave: 'rio', titulo: 'Rio de Janeiro', preco: 189, badge: '20% OFF', imagem: foto('rio', 800) },
-  { chave: 'bh', titulo: 'Belo Horizonte – MG', preco: 149, badge: '15% OFF', imagem: foto('bh', 800) },
-  { chave: 'sao', titulo: 'São Paulo – SP', preco: 129, badge: '10% OFF', imagem: foto('sao', 800) },
-  { chave: 'ssa', titulo: 'Salvador – BA', preco: 119, badge: '10% OFF', imagem: foto('ssa', 800) },
+  { chave: 'rio-o', titulo: 'Rio de Janeiro – RJ', preco: 189, badge: '20% OFF', imagem: foto('rio', 800) },
+  { chave: 'bh-o', titulo: 'Belo Horizonte – MG', preco: 149, badge: '15% OFF', imagem: foto('bh', 800) },
+  { chave: 'sao-o', titulo: 'São Paulo – SP', preco: 129, badge: '10% OFF', imagem: foto('sao', 800) },
+  { chave: 'ssa-o', titulo: 'Salvador – BA', preco: 119, badge: '10% OFF', imagem: foto('ssa', 800) },
 ];
 
 const FEATURES = [
@@ -68,7 +80,8 @@ export default function Inicio() {
   const alturaBarra = useBottomTabBarHeight();
   const [email, setEmail] = useState('');
   const [chatAereoAberto, setChatAereoAberto] = useState(false);
-  // Ofertas data-driven: começa no fallback e troca pelo backend se houver.
+  // Conteúdo data-driven: começa no fallback e troca pelo backend se houver.
+  const [destaques, setDestaques] = useState<OfertaView[]>(DESTAQUES_FALLBACK);
   const [ofertas, setOfertas] = useState<OfertaView[]>(OFERTAS_FALLBACK);
 
   useEffect(() => {
@@ -76,15 +89,10 @@ export default function Inicio() {
     listarOfertasHome()
       .then((lista) => {
         if (!ativo || lista.length === 0) return;
-        setOfertas(
-          lista.map((o) => ({
-            chave: o.id,
-            titulo: o.cidade ? `${o.titulo} · ${o.cidade}` : o.titulo,
-            preco: o.preco != null ? Number(o.preco) : undefined,
-            badge: o.badge ?? undefined,
-            imagem: o.imagem_url || foto(o.titulo || o.id, 800),
-          })),
-        );
+        const dest = lista.filter((o) => o.secao === 'destaque').map(paraView);
+        const grade = lista.filter((o) => o.secao !== 'destaque').map(paraView);
+        if (dest.length) setDestaques(dest);
+        if (grade.length) setOfertas(grade);
       })
       .catch(() => {});
     return () => {
@@ -159,10 +167,10 @@ export default function Inicio() {
 
         {/* Carrossel "Destino em alta" */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carrossel}>
-          {DESTINOS_ALTA.map((d) => (
+          {destaques.map((d) => (
             <ImageBackground
-              key={d.seed}
-              source={{ uri: foto(d.seed) }}
+              key={d.chave}
+              source={{ uri: d.imagem }}
               style={styles.banner}
               imageStyle={{ borderRadius: raio.lg }}
             >
@@ -171,12 +179,14 @@ export default function Inicio() {
                 style={[StyleSheet.absoluteFillObject, { borderRadius: raio.lg }]}
               />
               <View style={styles.bannerConteudo}>
-                <Selo texto={`🔥 ${t.vitrine.destinoEmAlta}`} tom="verde" />
-                <Text style={styles.bannerCidade}>{d.cidade}</Text>
+                <Selo texto={`🔥 ${d.badge || t.vitrine.destinoEmAlta}`} tom="verde" />
+                <Text style={styles.bannerCidade}>{d.titulo}</Text>
                 <Text style={styles.bannerLinha}>{t.vitrine.passagensOnibus}</Text>
-                <Text style={styles.bannerPreco}>
-                  <Text style={styles.bannerAPartir}>{t.vitrine.aPartirDe} </Text>R$ {d.preco}
-                </Text>
+                {d.preco != null && (
+                  <Text style={styles.bannerPreco}>
+                    <Text style={styles.bannerAPartir}>{t.vitrine.aPartirDe} </Text>R$ {d.preco}
+                  </Text>
+                )}
                 <Pressable style={styles.btnVerde}>
                   <Text style={styles.btnVerdeTexto}>{t.vitrine.verHorarios}</Text>
                 </Pressable>
@@ -265,16 +275,9 @@ export default function Inicio() {
         <View style={styles.rodape}>
           <Text style={styles.rodapeBaixe}>{t.vitrine.baixeApp}</Text>
           <Text style={styles.rodapeBaixeSub}>{t.vitrine.baixeAppSub}</Text>
-          <View style={styles.lojas}>
-            <Pressable style={styles.loja}>
-              <Ionicons name="logo-google-playstore" size={20} color={cores.textoInverso} />
-              <Text style={styles.lojaTexto}>Google Play</Text>
-            </Pressable>
-            <Pressable style={styles.loja}>
-              <Ionicons name="logo-apple" size={20} color={cores.textoInverso} />
-              <Text style={styles.lojaTexto}>App Store</Text>
-            </Pressable>
-          </View>
+          {/* Instalar PWA — só aparece em Android/iOS (web). Botões de loja
+              removidos provisoriamente até as apps nativas existirem. */}
+          <BotaoInstalarApp />
 
           <View style={styles.rodapeLinha} />
 

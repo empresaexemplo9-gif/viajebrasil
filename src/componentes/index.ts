@@ -21,3 +21,4 @@ export { Selo, tomStatusLead } from './Selo';
 export { Avatar } from './Avatar';
 export { CartaoEstatistica } from './CartaoEstatistica';
 export { HeroGradiente } from './HeroGradiente';
+export { BotaoInstalarApp } from './BotaoInstalarApp';

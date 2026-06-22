@@ -291,6 +291,11 @@ export const ptBR = {
     urlOuFoto: 'Cole uma URL ou envie uma foto',
     novaTitulo: 'Nova oferta',
     editarTitulo: 'Editar oferta',
+    secao: 'Onde aparece',
+    secaoDestaque: 'Destino em alta (topo)',
+    secaoOferta: 'Oferta (grade)',
+    grupoDestaques: '🔥 Destino em alta',
+    grupoOfertas: 'Ofertas imperdíveis',
   },
   seguranca: {
     titulo: 'Compra 100% segura',

@@ -12,7 +12,7 @@ export default async function handler(req: Req, res: Res) {
     const slug = lerQuery(req, 'tenantId') ?? 'viajebrasil';
     const tid = await resolverTenantId(sql, slug);
     const [linhas] = await comTenant(sql, tid, [
-      sql`select id, titulo, cidade, preco, imagem_url, badge, ordem
+      sql`select id, titulo, cidade, preco, imagem_url, badge, ordem, secao
           from home_ofertas where ativo
           order by ordem asc, criado_em desc`,
     ]);

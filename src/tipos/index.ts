@@ -145,6 +145,9 @@ export interface Lead {
   criado_em: string;
 }
 
+/** Seção da home onde a oferta aparece. */
+export type SecaoHome = 'destaque' | 'oferta';
+
 /** Oferta da home (gerenciada pelo admin, tabela `home_ofertas`). */
 export interface HomeOferta {
   id: string;
@@ -155,6 +158,8 @@ export interface HomeOferta {
   badge: string | null;
   ordem: number;
   ativo?: boolean;
+  /** `destaque` = carrossel do topo; `oferta` = grade. */
+  secao?: SecaoHome;
 }
 
 /** Banner do carrossel da tela inicial (referência: app da Decolar). */
