@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { cores, raio, sombra } from '../../src/tema';
 import { t } from '../../src/i18n';
-import { Botao } from '../../src/componentes';
+import { Botao, Selo } from '../../src/componentes';
 import { useAutenticacao } from '../../src/contextos/AutenticacaoContext';
 import { empresa } from '../../src/dados/empresa';
 
@@ -14,7 +14,7 @@ type Icone = keyof typeof Ionicons.glyphMap;
 export default function Perfil() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { usuario, autenticado, sair } = useAutenticacao();
+  const { usuario, autenticado, ehAdmin, ehConsultor, ehStaff, definirModo, sair } = useAutenticacao();
 
   return (
     <ScrollView style={styles.tela} contentContainerStyle={{ paddingBottom: 40 }}>
@@ -26,6 +26,13 @@ export default function Perfil() {
           <>
             <Text style={styles.nome}>{usuario?.nome}</Text>
             <Text style={styles.email}>{usuario?.email}</Text>
+            {usuario && (
+              <Selo
+                texto={usuario.papel}
+                tom={ehAdmin ? 'verde' : ehConsultor ? 'amarelo' : 'azul'}
+                style={{ marginTop: 8 }}
+              />
+            )}
           </>
         ) : (
           <>
@@ -40,6 +47,19 @@ export default function Perfil() {
           </>
         )}
       </View>
+
+      {ehStaff && (
+        <Grupo>
+          <Linha
+            icone="briefcase-outline"
+            rotulo={t.perfil.areaInterna}
+            aoTocar={() => {
+              definirModo('interno');
+              router.replace(ehAdmin ? '/admin' : '/painel');
+            }}
+          />
+        </Grupo>
+      )}
 
       <Grupo>
         <Linha icone="airplane-outline" rotulo={t.perfil.minhasViagens} aoTocar={() => router.push('/reservas')} />

@@ -1,58 +1,69 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Image,
   ImageBackground,
+  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
+  useWindowDimensions,
   View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { cores, raio, sombra } from '../../src/tema';
+import { empresa } from '../../src/dados/empresa';
+import { cores, espaco, raio, sombras, tipografia } from '../../src/tema';
 import { t } from '../../src/i18n';
-import { LogoMarca, ChatbotAereo } from '../../src/componentes';
-import { abrirWhiteLabel } from '../../src/servicos';
+import { Avatar, BotaoInstalarApp, Cartao, ChatbotAereo, HeroGradiente, LogoMarca, Selo } from '../../src/componentes';
+import { listarOfertasHome } from '../../src/servicos';
+import { OFERTAS_PADRAO, type OfertaPadrao } from '../../src/dados/ofertasPadrao';
+import type { HomeOferta } from '../../src/tipos';
 
 /** Roxo do card "Corporativo" (só nesta vitrine, fora da paleta base). */
 const ROXO = '#6D4FB0';
 
-/** Fotos reais das cidades (enviadas pelo cliente, uso livre) em public/destinos/.
- * Seeds sem foto caem em placeholder estável (Lorem Picsum). */
-const FOTO_DESTINO: Record<string, string> = {
-  rio: '/destinos/rio.jpg',
-  ssa: '/destinos/salvador.jpg',
-  bh: '/destinos/belo-horizonte.jpg',
-  sao: '/destinos/sao-paulo.jpg',
-  floripa: '/destinos/florianopolis.jpg',
-};
-const foto = (seed: string, w = 640) =>
-  FOTO_DESTINO[seed] ?? `https://picsum.photos/seed/vb-${seed}/${w}/400`;
+/** Imagem ilustrativa genérica e estável (Lorem Picsum), determinística por seed.
+ *  Resolução mais alta (≈3:2) para telas retina enquanto as fotos reais não chegam. */
+const foto = (seed: string, w = 900) => `https://picsum.photos/seed/vb-${seed}/${w}/${Math.round(w * 0.66)}`;
 
 const CARDS = [
-  { chave: 'onibus', emoji: '🚌', titulo: t.vitrine.onibusTitulo, sub: t.vitrine.onibusSub, cor: cores.verde, selecionado: true },
+  { chave: 'onibus', emoji: '🚌', titulo: t.vitrine.onibusTitulo, sub: t.vitrine.onibusSub, cor: cores.verde },
   { chave: 'aereo', emoji: '✈️', titulo: t.vitrine.aereoTitulo, sub: t.vitrine.aereoSub, cor: cores.azul },
   { chave: 'corporativo', emoji: '💼', titulo: t.vitrine.corporativoTitulo, sub: t.vitrine.corporativoSub, cor: ROXO },
   { chave: 'hospedagem', emoji: '🏨', titulo: t.vitrine.hospedagemTitulo, sub: t.vitrine.hospedagemSub, cor: cores.laranja, emBreve: true },
 ];
 
-const DESTINOS_ALTA = [
-  { cidade: 'Rio de Janeiro', preco: 189, seed: 'rio' },
-  { cidade: 'Salvador', preco: 119, seed: 'ssa' },
-  { cidade: 'São Paulo', preco: 149, seed: 'sao' },
-  { cidade: 'Florianópolis', preco: 199, seed: 'floripa' },
-];
+/** Oferta normalizada exibida na vitrine (vem do backend ou do fallback). */
+interface OfertaView {
+  chave: string;
+  titulo: string;
+  preco?: number;
+  badge?: string;
+  imagem: string;
+}
 
-const OFERTAS = [
-  { cidade: 'Rio de Janeiro', preco: 189, off: '20% OFF', seed: 'rio' },
-  { cidade: 'Belo Horizonte – MG', preco: 149, off: '15% OFF', seed: 'bh' },
-  { cidade: 'São Paulo – SP', preco: 129, off: '10% OFF', seed: 'sao' },
-  { cidade: 'Salvador – BA', preco: 119, off: '10% OFF', seed: 'ssa' },
-];
+/** Mapeia uma oferta do backend para a forma exibida na vitrine. */
+function paraView(o: HomeOferta): OfertaView {
+  return {
+    chave: o.id,
+    titulo: o.cidade || o.titulo,
+    preco: o.preco != null ? Number(o.preco) : undefined,
+    badge: o.badge ?? undefined,
+    imagem: o.imagem_url || foto(o.titulo || o.id, 800),
+  };
+}
+
+/** Fallbacks estáticos (quando o backend não tem itens/está fora) — derivados
+ *  de OFERTAS_PADRAO (mesma fonte usada pelo admin), com fotos reais. */
+function padraoView(o: OfertaPadrao, i: number): OfertaView {
+  return { chave: `${o.secao}-${i}`, titulo: o.cidade || o.titulo, preco: o.preco, badge: o.badge, imagem: o.imagem_url };
+}
+const DESTAQUES_FALLBACK: OfertaView[] = OFERTAS_PADRAO.filter((o) => o.secao === 'destaque').map(padraoView);
+const OFERTAS_FALLBACK: OfertaView[] = OFERTAS_PADRAO.filter((o) => o.secao === 'oferta').map(padraoView);
 
 const FEATURES = [
   { emoji: '🔒', titulo: t.vitrine.seg1Titulo, sub: t.vitrine.seg1Sub },
@@ -61,57 +72,72 @@ const FEATURES = [
   { emoji: '📱', titulo: t.vitrine.seg4Titulo, sub: t.vitrine.seg4Sub },
 ];
 
-const SOCIAL: (keyof typeof Ionicons.glyphMap)[] = [
-  'logo-instagram',
-  'logo-facebook',
-  'logo-youtube',
-  'logo-whatsapp',
+const SOCIAL: { icone: keyof typeof Ionicons.glyphMap; url: string }[] = [
+  { icone: 'logo-instagram', url: empresa.redes.instagram },
+  { icone: 'logo-facebook', url: empresa.redes.facebook },
+  { icone: 'logo-youtube', url: empresa.redes.youtube },
+  { icone: 'logo-whatsapp', url: empresa.whatsappUrl },
 ];
 
 export default function Inicio() {
-  const insets = useSafeAreaInsets();
-  const alturaBarra = useBottomTabBarHeight();
   const router = useRouter();
+  const alturaBarra = useBottomTabBarHeight();
+  const { width } = useWindowDimensions();
+  const largoRodape = width >= 900; // distribui o rodapé em colunas no desktop
   const [email, setEmail] = useState('');
-  // Chatbot de Passagens Aéreas: atendimento dentro do próprio app.
   const [chatAereoAberto, setChatAereoAberto] = useState(false);
+  // Conteúdo data-driven: começa no fallback e troca pelo backend se houver.
+  const [destaques, setDestaques] = useState<OfertaView[]>(DESTAQUES_FALLBACK);
+  const [ofertas, setOfertas] = useState<OfertaView[]>(OFERTAS_FALLBACK);
+
+  useEffect(() => {
+    let ativo = true;
+    listarOfertasHome()
+      .then((lista) => {
+        if (!ativo || lista.length === 0) return;
+        const dest = lista.filter((o) => o.secao === 'destaque').map(paraView);
+        const grade = lista.filter((o) => o.secao !== 'destaque').map(paraView);
+        if (dest.length) setDestaques(dest);
+        if (grade.length) setOfertas(grade);
+      })
+      .catch(() => {});
+    return () => {
+      ativo = false;
+    };
+  }, []);
 
   return (
     <View style={styles.tela}>
-      {/* Cabeçalho */}
-      <View style={[styles.cabecalho, { paddingTop: insets.top + 10 }]}>
-        <View style={styles.marcaArea}>
-          <LogoMarca tamanho={38} />
-          <Text style={styles.marca}>
-            <Text style={{ color: cores.textoInverso }}>viaje</Text>
-            <Text style={{ color: cores.verde }}>brasil</Text>
-          </Text>
-        </View>
-        <View style={styles.acoesTopo}>
-          <Pressable style={styles.faleConosco} hitSlop={6}>
-            <Ionicons name="call" size={18} color={cores.textoInverso} />
-            <Text style={styles.faleConoscoTexto}>{t.vitrine.faleConosco}</Text>
-          </Pressable>
-          <Pressable hitSlop={8}>
-            <Ionicons name="menu" size={28} color={cores.textoInverso} />
-          </Pressable>
-        </View>
-      </View>
+      <HeroGradiente
+        eyebrow={t.app.slogan}
+        titulo={t.vitrine.heroTitulo}
+        subtitulo={t.vitrine.heroSub}
+        topo={
+          <View style={styles.heroTopo}>
+            <View style={styles.marcaArea}>
+              <LogoMarca tamanho={48} />
+              <Text style={styles.marca}>
+                <Text style={{ color: cores.textoInverso }}>viaje</Text>
+                <Text style={{ color: cores.verde }}>brasil</Text>
+              </Text>
+            </View>
+            <Pressable
+              style={styles.faleConosco}
+              hitSlop={6}
+              onPress={() => router.push('/atendimento')}
+            >
+              <Ionicons name="chatbubbles" size={16} color={cores.textoInverso} />
+              <Text style={styles.faleConoscoTexto}>{t.vitrine.faleConosco}</Text>
+            </Pressable>
+          </View>
+        }
+      />
 
       <ScrollView
         style={styles.fundo}
         contentContainerStyle={{ paddingBottom: alturaBarra + 8 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Aba "Passagens" */}
-        <View style={styles.aba}>
-          <View style={styles.abaItem}>
-            <Ionicons name="briefcase" size={20} color={cores.verde} />
-            <Text style={styles.abaTexto}>{t.vitrine.passagens}</Text>
-          </View>
-          <View style={styles.abaSublinha} />
-        </View>
-
         {/* Seleção de produto */}
         <View style={styles.bloco}>
           <Text style={styles.pergunta}>
@@ -120,53 +146,55 @@ export default function Inicio() {
           </Text>
           <View style={styles.grade}>
             {CARDS.map((c) => (
-              <Pressable
+              <Cartao
                 key={c.chave}
-                style={[styles.card, c.selecionado && { borderColor: cores.verde, borderWidth: 2 }, c.emBreve && { opacity: 0.85 }]}
-                disabled={c.emBreve}
-                onPress={
-                  c.chave === 'onibus'
-                    ? () => router.push('/onibus')
-                    : c.chave === 'aereo'
-                      ? () => setChatAereoAberto(true)
-                      : undefined
+                style={[styles.card, c.emBreve && { opacity: 0.85 }]}
+                elevacao="md"
+                aoPressionar={
+                  c.emBreve
+                    ? undefined
+                    : c.chave === 'onibus'
+                      ? () => router.push('/onibus')
+                      : c.chave === 'aereo'
+                        ? () => setChatAereoAberto(true)
+                        : undefined
                 }
               >
                 <View style={styles.cardTopo}>
-                  <Text style={styles.cardEmoji}>{c.emoji}</Text>
-                  {c.selecionado && <Ionicons name="checkmark-circle" size={24} color={cores.verde} />}
+                  <Avatar inicial={c.emoji} tamanho={44} cor={c.cor + '1A'} corConteudo={c.cor} />
                 </View>
                 <View style={styles.cardTituloLinha}>
                   <Text style={[styles.cardTitulo, { color: c.cor }]}>{c.titulo}</Text>
-                  {c.emBreve && (
-                    <View style={styles.emBreve}>
-                      <Text style={styles.emBreveTexto}>{t.vitrine.emBreve}</Text>
-                    </View>
-                  )}
+                  {c.emBreve && <Selo texto={t.vitrine.emBreve} tom="laranja" />}
                 </View>
                 <Text style={styles.cardSub}>{c.sub}</Text>
-              </Pressable>
+              </Cartao>
             ))}
           </View>
         </View>
 
         {/* Carrossel "Destino em alta" */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carrossel}>
-          {DESTINOS_ALTA.map((d) => (
+          {destaques.map((d) => (
             <ImageBackground
-              key={d.seed}
-              source={{ uri: foto(d.seed) }}
+              key={d.chave}
+              source={{ uri: d.imagem }}
               style={styles.banner}
               imageStyle={{ borderRadius: raio.lg }}
             >
-              <View style={styles.bannerOverlay} />
+              <LinearGradient
+                colors={['transparent', cores.overlayEscuro]}
+                style={[StyleSheet.absoluteFillObject, { borderRadius: raio.lg }]}
+              />
               <View style={styles.bannerConteudo}>
-                <Text style={styles.bannerSelo}>🔥 {t.vitrine.destinoEmAlta.toUpperCase()}</Text>
-                <Text style={styles.bannerCidade}>{d.cidade}</Text>
+                <Selo texto={`🔥 ${d.badge || t.vitrine.destinoEmAlta}`} tom="verde" />
+                <Text style={styles.bannerCidade}>{d.titulo}</Text>
                 <Text style={styles.bannerLinha}>{t.vitrine.passagensOnibus}</Text>
-                <Text style={styles.bannerPreco}>
-                  <Text style={styles.bannerAPartir}>{t.vitrine.aPartirDe} </Text>R$ {d.preco}
-                </Text>
+                {d.preco != null && (
+                  <Text style={styles.bannerPreco}>
+                    <Text style={styles.bannerAPartir}>{t.vitrine.aPartirDe} </Text>R$ {d.preco}
+                  </Text>
+                )}
                 <Pressable style={styles.btnVerde}>
                   <Text style={styles.btnVerdeTexto}>{t.vitrine.verHorarios}</Text>
                 </Pressable>
@@ -175,7 +203,7 @@ export default function Inicio() {
           ))}
         </ScrollView>
 
-        {/* Ofertas imperdíveis */}
+        {/* Ofertas imperdíveis (data-driven) */}
         <View style={styles.bloco}>
           <View style={styles.secaoTopo}>
             <Text style={styles.secaoTitulo}>{t.vitrine.ofertasTitulo}</Text>
@@ -184,42 +212,44 @@ export default function Inicio() {
             </Pressable>
           </View>
           <View style={styles.grade}>
-            {OFERTAS.map((o) => (
-              <View key={o.cidade} style={styles.oferta}>
+            {ofertas.map((o) => (
+              <Cartao key={o.chave} style={styles.oferta} elevacao="md">
                 <View>
-                  <Image source={{ uri: foto(o.seed, 500) }} style={styles.ofertaImg} />
-                  <View style={styles.ofertaBadge}>
-                    <Text style={styles.ofertaBadgeTexto}>{o.off}</Text>
-                  </View>
+                  <Image source={{ uri: o.imagem }} style={styles.ofertaImg} />
+                  {o.badge ? <Selo texto={o.badge} tom="laranja" style={styles.ofertaBadge} /> : null}
                 </View>
                 <View style={styles.ofertaCorpo}>
-                  <Text style={styles.ofertaCidade}>{o.cidade}</Text>
-                  <Text style={styles.ofertaPreco}>
-                    <Text style={styles.ofertaAPartir}>{t.vitrine.aPartirDe} </Text>
-                    <Text style={{ color: cores.verde, fontWeight: '800' }}>R$ {o.preco}</Text>
+                  <Text style={styles.ofertaCidade} numberOfLines={1}>
+                    {o.titulo}
                   </Text>
+                  {o.preco != null && (
+                    <Text style={styles.ofertaPreco}>
+                      <Text style={styles.ofertaAPartir}>{t.vitrine.aPartirDe} </Text>
+                      <Text style={styles.ofertaValor}>R$ {o.preco}</Text>
+                    </Text>
+                  )}
                   <Pressable style={styles.btnVerde}>
                     <Text style={styles.btnVerdeTexto}>{t.vitrine.verOpcoes}</Text>
                   </Pressable>
                 </View>
-              </View>
+              </Cartao>
             ))}
           </View>
         </View>
 
         {/* Por que viajar */}
-        <View style={[styles.bloco, { backgroundColor: cores.superficieAlt, paddingVertical: 24 }]}>
-          <Text style={[styles.secaoTitulo, { textAlign: 'center', color: cores.azulMarinho, marginBottom: 18 }]}>
+        <View style={[styles.bloco, { backgroundColor: cores.superficieAlt, paddingVertical: espaco.xl }]}>
+          <Text style={[styles.secaoTitulo, { textAlign: 'center', marginBottom: espaco.lg }]}>
             <Text>Por que viajar com a </Text>
             <Text style={{ color: cores.verde }}>ViajeBrasil?</Text>
           </Text>
           <View style={styles.grade}>
             {FEATURES.map((f) => (
-              <View key={f.titulo} style={styles.feature}>
-                <Text style={styles.featureEmoji}>{f.emoji}</Text>
+              <Cartao key={f.titulo} style={styles.feature} elevacao="sm">
+                <Avatar inicial={f.emoji} tamanho={48} cor={cores.fundo} corConteudo={cores.verde} />
                 <Text style={styles.featureTitulo}>{f.titulo}</Text>
                 <Text style={styles.featureSub}>{f.sub}</Text>
-              </View>
+              </Cartao>
             ))}
           </View>
         </View>
@@ -251,57 +281,63 @@ export default function Inicio() {
 
         {/* Rodapé */}
         <View style={styles.rodape}>
-          <Text style={styles.rodapeBaixe}>{t.vitrine.baixeApp}</Text>
-          <Text style={styles.rodapeBaixeSub}>{t.vitrine.baixeAppSub}</Text>
-          <View style={styles.lojas}>
-            <Pressable style={styles.loja}>
-              <Ionicons name="logo-google-playstore" size={20} color={cores.textoInverso} />
-              <Text style={styles.lojaTexto}>Google Play</Text>
-            </Pressable>
-            <Pressable style={styles.loja}>
-              <Ionicons name="logo-apple" size={20} color={cores.textoInverso} />
-              <Text style={styles.lojaTexto}>App Store</Text>
-            </Pressable>
-          </View>
+          <View style={styles.rodapeInner}>
+            {/* Colunas principais (lado a lado no desktop, empilhadas no mobile) */}
+            <View style={[styles.rodapeCols, largoRodape && styles.rodapeColsRow]}>
+              <View style={[styles.rodapeCol, largoRodape && styles.rodapeColFlex]}>
+                <Text style={styles.rodapeBaixe}>{t.vitrine.baixeApp}</Text>
+                <Text style={styles.rodapeBaixeSub}>{t.vitrine.baixeAppSub}</Text>
+                {/* Instalar PWA — só em Android/iOS (web); lojas removidas por ora. */}
+                <BotaoInstalarApp />
+              </View>
 
-          <View style={styles.rodapeLinha} />
+              <View style={[styles.rodapeCol, largoRodape && styles.rodapeColFlex]}>
+                <View style={styles.rodapeSeguranca}>
+                  <Ionicons name="shield-checkmark" size={20} color={cores.verde} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.rodapeSegTitulo}>{t.vitrine.compraSegura}</Text>
+                    <Text style={styles.rodapeSegSub}>{t.vitrine.compraSeguraSub}</Text>
+                  </View>
+                </View>
+                <Text style={styles.rodapeRotulo}>{t.vitrine.formasPagamento}</Text>
+                <View style={styles.pagamentos}>
+                  <Ionicons name="card" size={22} color={cores.textoInverso} />
+                  <Text style={styles.pagamentosTexto}>Pix · Visa · Mastercard · Boleto</Text>
+                </View>
+              </View>
 
-          <View style={styles.rodapeSeguranca}>
-            <Ionicons name="shield-checkmark" size={20} color={cores.verde} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.rodapeSegTitulo}>{t.vitrine.compraSegura}</Text>
-              <Text style={styles.rodapeSegSub}>{t.vitrine.compraSeguraSub}</Text>
+              <View style={styles.rodapeCol}>
+                <Text style={styles.rodapeRotulo}>{t.vitrine.sigaNos}</Text>
+                <View style={styles.social}>
+                  {SOCIAL.map((s) => (
+                    <Pressable key={s.icone} hitSlop={8} onPress={() => Linking.openURL(s.url)}>
+                      <Ionicons name={s.icone} size={24} color={cores.textoInverso} />
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
             </View>
-          </View>
 
-          <Text style={styles.rodapeRotulo}>{t.vitrine.formasPagamento}</Text>
-          <View style={styles.pagamentos}>
-            <Ionicons name="card" size={22} color={cores.textoInverso} />
-            <Text style={styles.pagamentosTexto}>Pix · Visa · Mastercard · Boleto</Text>
-          </View>
+            <View style={styles.rodapeLinha} />
 
-          <Text style={styles.rodapeRotulo}>{t.vitrine.sigaNos}</Text>
-          <View style={styles.social}>
-            {SOCIAL.map((s) => (
-              <Pressable key={s} hitSlop={8}>
-                <Ionicons name={s} size={24} color={cores.textoInverso} />
-              </Pressable>
-            ))}
+            {/* Base institucional */}
+            <View style={[largoRodape && styles.rodapeBaseRow]}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.rodapeEmpresa}>{t.vitrine.empresaNome}</Text>
+                <Text style={styles.rodapeCnpj}>{t.vitrine.cnpj}</Text>
+              </View>
+              <View style={[styles.rodapeLinks, largoRodape && { marginTop: 0 }]}>
+                <Pressable>
+                  <Text style={styles.rodapeLink}>{t.vitrine.politica}</Text>
+                </Pressable>
+                <Text style={styles.rodapeSep}>·</Text>
+                <Pressable onPress={() => router.push('/termos')}>
+                  <Text style={styles.rodapeLink}>{t.vitrine.termos}</Text>
+                </Pressable>
+              </View>
+            </View>
+            <Text style={styles.rodapeCopy}>{t.vitrine.copyright}</Text>
           </View>
-
-          <View style={styles.rodapeLinha} />
-          <Text style={styles.rodapeEmpresa}>{t.vitrine.empresaNome}</Text>
-          <Text style={styles.rodapeCnpj}>{t.vitrine.cnpj}</Text>
-          <View style={styles.rodapeLinks}>
-            <Pressable>
-              <Text style={styles.rodapeLink}>{t.vitrine.politica}</Text>
-            </Pressable>
-            <Text style={styles.rodapeSep}>·</Text>
-            <Pressable>
-              <Text style={styles.rodapeLink}>{t.vitrine.termos}</Text>
-            </Pressable>
-          </View>
-          <Text style={styles.rodapeCopy}>{t.vitrine.copyright}</Text>
         </View>
       </ScrollView>
 
@@ -314,53 +350,34 @@ export default function Inicio() {
 const styles = StyleSheet.create({
   tela: { flex: 1, backgroundColor: cores.azulMarinho },
   fundo: { flex: 1, backgroundColor: cores.fundo },
-  cabecalho: {
-    backgroundColor: cores.azulMarinho,
-    paddingHorizontal: 16,
-    paddingBottom: 14,
+
+  heroTopo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  marcaArea: { flexDirection: 'row', alignItems: 'center', gap: espaco.sm },
+  marca: { fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
+  faleConosco: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: 6,
+    backgroundColor: 'rgba(255,255,255,0.14)',
+    borderRadius: raio.pill,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
   },
-  marcaArea: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  marca: { fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
-  acoesTopo: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  faleConosco: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  faleConoscoTexto: { color: cores.textoInverso, fontWeight: '700', fontSize: 13 },
+  faleConoscoTexto: { color: cores.textoInverso, fontWeight: '700', fontSize: 12 },
 
-  aba: { backgroundColor: cores.superficie, paddingHorizontal: 16, paddingTop: 14 },
-  abaItem: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingBottom: 10 },
-  abaTexto: { color: cores.azulMarinho, fontWeight: '800', fontSize: 18 },
-  abaSublinha: { height: 3, width: 120, backgroundColor: cores.verde, borderRadius: 999 },
-
-  bloco: { paddingHorizontal: 16, paddingTop: 18 },
-  pergunta: { fontSize: 26, fontWeight: '800', textAlign: 'center', marginBottom: 18, lineHeight: 32 },
-  grade: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 14 },
-  card: {
-    width: '47%',
-    flexGrow: 1,
-    backgroundColor: cores.superficie,
-    borderRadius: raio.lg,
-    borderWidth: 1,
-    borderColor: cores.borda,
-    padding: 16,
-    minHeight: 165,
-    ...sombra,
-  },
-  cardTopo: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 8 },
-  cardEmoji: { fontSize: 32 },
-  cardTituloLinha: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8 },
-  cardTitulo: { fontSize: 17, fontWeight: '800' },
+  bloco: { paddingHorizontal: espaco.lg, paddingTop: espaco.lg },
+  pergunta: { ...tipografia.tituloGrande, textAlign: 'center', marginBottom: espaco.lg, lineHeight: 34 },
+  grade: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: espaco.md },
+  card: { width: '47%', flexGrow: 1, minHeight: 168 },
+  cardTopo: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: espaco.sm },
+  cardTituloLinha: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: espaco.sm },
+  cardTitulo: { ...tipografia.subtitulo },
   cardSub: { color: cores.textoSuave, fontSize: 13, marginTop: 6, fontWeight: '500', lineHeight: 18 },
-  emBreve: { backgroundColor: cores.laranja, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3 },
-  emBreveTexto: { color: cores.textoInverso, fontSize: 11, fontWeight: '800' },
 
-  carrossel: { paddingHorizontal: 16, paddingTop: 20, gap: 14 },
+  carrossel: { paddingHorizontal: espaco.lg, paddingTop: espaco.xl, gap: espaco.md },
   banner: { width: 300, height: 190, justifyContent: 'flex-end', backgroundColor: cores.azulMarinho, borderRadius: raio.lg },
-  bannerOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(13,28,54,0.45)', borderRadius: raio.lg },
-  bannerConteudo: { padding: 16 },
-  bannerSelo: { color: cores.verde, fontSize: 11, fontWeight: '800', marginBottom: 4 },
-  bannerCidade: { color: cores.textoInverso, fontSize: 22, fontWeight: '800' },
+  bannerConteudo: { padding: espaco.lg, gap: 2 },
+  bannerCidade: { color: cores.textoInverso, fontSize: 22, fontWeight: '800', marginTop: 6 },
   bannerLinha: { color: cores.textoInverso, opacity: 0.9, fontSize: 13, fontWeight: '600' },
   bannerPreco: { color: cores.verde, fontSize: 20, fontWeight: '800', marginTop: 2 },
   bannerAPartir: { color: cores.textoInverso, opacity: 0.9, fontSize: 13, fontWeight: '600' },
@@ -368,29 +385,28 @@ const styles = StyleSheet.create({
   btnVerde: { backgroundColor: cores.verde, borderRadius: raio.md, paddingVertical: 10, paddingHorizontal: 16, alignItems: 'center', marginTop: 10 },
   btnVerdeTexto: { color: cores.textoInverso, fontWeight: '800', fontSize: 14 },
 
-  secaoTopo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 },
-  secaoTitulo: { fontSize: 20, fontWeight: '800', color: cores.azulMarinho, flex: 1, paddingRight: 8 },
+  secaoTopo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: espaco.md },
+  secaoTitulo: { ...tipografia.titulo, color: cores.azulMarinho, flex: 1, paddingRight: 8 },
   verTodas: { color: cores.verde, fontWeight: '800', fontSize: 13 },
 
-  oferta: { width: '47%', flexGrow: 1, backgroundColor: cores.superficie, borderRadius: raio.lg, overflow: 'hidden', ...sombra },
+  oferta: { width: '47%', flexGrow: 1, padding: 0, overflow: 'hidden' },
   ofertaImg: { width: '100%', height: 110, backgroundColor: cores.azulMarinho },
-  ofertaBadge: { position: 'absolute', top: 10, left: 10, backgroundColor: cores.laranja, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3 },
-  ofertaBadgeTexto: { color: cores.textoInverso, fontSize: 11, fontWeight: '800' },
-  ofertaCorpo: { padding: 12, gap: 4 },
-  ofertaCidade: { fontSize: 15, fontWeight: '800', color: cores.azulMarinho },
+  ofertaBadge: { position: 'absolute', top: 10, left: 10 },
+  ofertaCorpo: { padding: espaco.md, gap: 4 },
+  ofertaCidade: { ...tipografia.secao, color: cores.azulMarinho },
   ofertaPreco: { fontSize: 14 },
   ofertaAPartir: { color: cores.textoSuave, fontSize: 13, fontWeight: '600' },
+  ofertaValor: { color: cores.verde, fontWeight: '800' },
 
-  feature: { width: '47%', flexGrow: 1, backgroundColor: cores.superficie, borderRadius: raio.lg, padding: 16, alignItems: 'center', ...sombra },
-  featureEmoji: { fontSize: 30, marginBottom: 8 },
-  featureTitulo: { fontSize: 15, fontWeight: '800', color: cores.azulMarinho, textAlign: 'center' },
-  featureSub: { fontSize: 12, color: cores.textoSuave, textAlign: 'center', marginTop: 6, lineHeight: 17, fontWeight: '500' },
+  feature: { width: '47%', flexGrow: 1, alignItems: 'center', gap: 6 },
+  featureTitulo: { ...tipografia.secao, color: cores.azulMarinho, textAlign: 'center' },
+  featureSub: { fontSize: 12, color: cores.textoSuave, textAlign: 'center', lineHeight: 17, fontWeight: '500' },
 
-  newsletter: { backgroundColor: cores.azulMarinho, margin: 16, borderRadius: raio.lg, padding: 18, gap: 14 },
-  newsletterTopo: { flexDirection: 'row', gap: 12, alignItems: 'center' },
+  newsletter: { backgroundColor: cores.azulMarinho, margin: espaco.lg, borderRadius: raio.lg, padding: 18, gap: espaco.md },
+  newsletterTopo: { flexDirection: 'row', gap: espaco.md, alignItems: 'center' },
   newsletterTitulo: { color: cores.textoInverso, fontWeight: '800', fontSize: 17 },
   newsletterSub: { color: cores.textoInverso, opacity: 0.85, fontSize: 12, marginTop: 2 },
-  newsletterForm: { flexDirection: 'row', gap: 10 },
+  newsletterForm: { flexDirection: 'row', gap: espaco.sm },
   newsletterInput: {
     flex: 1,
     backgroundColor: 'rgba(255,255,255,0.12)',
@@ -402,22 +418,28 @@ const styles = StyleSheet.create({
   },
 
   rodape: { backgroundColor: '#0F1C36', paddingHorizontal: 20, paddingTop: 24, paddingBottom: 28 },
+  rodapeInner: { width: '100%', maxWidth: 1100, alignSelf: 'center' },
+  rodapeCols: { gap: 20 },
+  rodapeColsRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 48 },
+  rodapeCol: { gap: 12 },
+  rodapeColFlex: { flex: 1 },
+  rodapeBaseRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 16 },
   rodapeBaixe: { color: cores.textoInverso, fontWeight: '800', fontSize: 18 },
   rodapeBaixeSub: { color: cores.textoInverso, opacity: 0.8, fontSize: 13, marginTop: 4, fontWeight: '500' },
-  lojas: { flexDirection: 'row', gap: 12, marginTop: 14 },
-  loja: { flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)', borderRadius: raio.md, paddingVertical: 10, paddingHorizontal: 14 },
+  lojas: { flexDirection: 'row', gap: espaco.md, marginTop: espaco.md },
+  loja: { flexDirection: 'row', alignItems: 'center', gap: espaco.sm, borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)', borderRadius: raio.md, paddingVertical: 10, paddingHorizontal: 14 },
   lojaTexto: { color: cores.textoInverso, fontWeight: '700', fontSize: 13 },
   rodapeLinha: { height: 1, backgroundColor: 'rgba(255,255,255,0.12)', marginVertical: 20 },
-  rodapeSeguranca: { flexDirection: 'row', gap: 10, alignItems: 'center', marginBottom: 18 },
+  rodapeSeguranca: { flexDirection: 'row', gap: espaco.sm, alignItems: 'center', marginBottom: 18 },
   rodapeSegTitulo: { color: cores.textoInverso, fontWeight: '800', fontSize: 14 },
   rodapeSegSub: { color: cores.textoInverso, opacity: 0.8, fontSize: 12, marginTop: 2 },
   rodapeRotulo: { color: cores.textoClaro, fontSize: 12, fontWeight: '800', letterSpacing: 0.5, marginBottom: 10 },
-  pagamentos: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 18 },
+  pagamentos: { flexDirection: 'row', alignItems: 'center', gap: espaco.sm, marginBottom: 18 },
   pagamentosTexto: { color: cores.textoInverso, opacity: 0.9, fontSize: 13, fontWeight: '600' },
   social: { flexDirection: 'row', gap: 20, marginBottom: 4 },
   rodapeEmpresa: { color: cores.textoInverso, fontWeight: '800', fontSize: 13 },
   rodapeCnpj: { color: cores.textoInverso, opacity: 0.7, fontSize: 12, marginTop: 2 },
-  rodapeLinks: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 },
+  rodapeLinks: { flexDirection: 'row', alignItems: 'center', gap: espaco.sm, marginTop: 12 },
   rodapeLink: { color: cores.textoInverso, opacity: 0.9, fontSize: 12, fontWeight: '700' },
   rodapeSep: { color: cores.textoClaro },
   rodapeCopy: { color: cores.textoClaro, fontSize: 11, marginTop: 12 },

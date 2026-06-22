@@ -1,15 +1,32 @@
 import React from 'react';
-import { Tabs } from 'expo-router';
+import { Redirect, Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { View, Text, StyleSheet } from 'react-native';
+import { ActivityIndicator, View, Text, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { cores, alturaBarraAbas } from '../../src/tema';
 import { t } from '../../src/i18n';
 import { useCarrinho } from '../../src/contextos/CarrinhoContext';
+import { useAutenticacao } from '../../src/contextos/AutenticacaoContext';
 
 type Icone = keyof typeof Ionicons.glyphMap;
 
 export default function LayoutAbas() {
   const { itens } = useCarrinho();
+  const insets = useSafeAreaInsets();
+  const { carregando, ehStaff, ehAdmin, modo } = useAutenticacao();
+
+  // Aguarda a sessão para não "piscar" antes de decidir o redirecionamento.
+  if (carregando) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.fundo }}>
+        <ActivityIndicator size="large" color={cores.verde} />
+      </View>
+    );
+  }
+  // Staff em modo interno cai direto na sua área (sem a poluição do cliente).
+  if (ehStaff && modo === 'interno') {
+    return <Redirect href={ehAdmin ? '/admin' : '/painel'} />;
+  }
 
   return (
     <Tabs
@@ -19,12 +36,14 @@ export default function LayoutAbas() {
         tabBarInactiveTintColor: cores.textoClaro,
         tabBarStyle: {
           backgroundColor: cores.superficie,
-          borderTopColor: cores.borda,
-          height: alturaBarraAbas,
-          paddingBottom: 8,
+          // Altura considera a área segura inferior (notch/home indicator).
+          height: alturaBarraAbas + insets.bottom + 8,
+          paddingBottom: insets.bottom + 10,
           paddingTop: 8,
         },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '700' },
+        // lineHeight evita o corte do texto da label.
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '700', lineHeight: 15 },
+        tabBarIconStyle: { marginTop: 2 },
       }}
     >
       <Tabs.Screen
@@ -39,6 +58,13 @@ export default function LayoutAbas() {
         options={{
           title: t.abas.buscar,
           tabBarIcon: ({ color, size }) => icone('search', color, size),
+        }}
+      />
+      <Tabs.Screen
+        name="atendimento"
+        options={{
+          title: t.abas.atendimento,
+          tabBarIcon: ({ color, size }) => icone('chatbubbles', color, size),
         }}
       />
       <Tabs.Screen

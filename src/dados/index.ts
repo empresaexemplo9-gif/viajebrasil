@@ -11,19 +11,19 @@ import type {
 } from '../tipos';
 
 /** Imagens ilustrativas (Unsplash) — fotos reais usadas na home e nos resultados. */
-const img = (id: string, w = 800) =>
-  `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}&q=70`;
+const img = (id: string, w = 1200) =>
+  `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}&q=72`;
 
 // FOTO REAL com licença livre, hospedada no Wikimedia Commons (uso comercial
 // permitido — o Commons só aceita mídia livre; atribuição em CREDITS.md).
 // URL estável via Special:FilePath; o navegador do usuário carrega a imagem.
-const imgCommons = (arquivo: string, w = 1000) =>
+const imgCommons = (arquivo: string, w = 1400) =>
   `https://commons.wikimedia.org/wiki/Special:FilePath/${arquivo}?width=${w}`;
 
 /**
  * Imagem dos destinos da home (formato retrato), via Lorem Picsum por cidade.
  */
-const imgDestino = (semente: string, w = 500, h = 600) =>
+const imgDestino = (semente: string, w = 800, h = 1000) =>
   `https://picsum.photos/seed/${semente}/${w}/${h}`;
 
 /** Banners do carrossel da tela inicial (inspirado no app da Decolar). */
