@@ -2,7 +2,15 @@ export { API_CONFIG, SITE_OFICIAL, TENANT, CONSULTOR } from './config';
 export type { FonteDados } from './config';
 export { notificarInicioAtendimentoAereo, enviarLeadAereo } from './leads';
 export type { LeadAereo } from './leads';
-export { linkCheckoutOficial, abrirCheckoutOficial, linkWhiteLabel, abrirWhiteLabel } from './site';
+export {
+  linkCheckoutOficial,
+  abrirCheckoutOficial,
+  linkWhiteLabel,
+  abrirWhiteLabel,
+  linkBuscaOnibus,
+  abrirBuscaOnibus,
+} from './site';
+export type { BuscaOnibus } from './site';
 export { ErroApi, requisitar } from './cliente';
 export { ENDPOINTS } from './endpoints';
 export { tokenAtual, definirToken, carregarTokenPersistido } from './sessao';
