@@ -85,16 +85,15 @@ export const ptBR = {
     digitando: 'Digitando…',
     saudacao:
       'Olá! 👋 Sou o assistente virtual da ViajeBrasil. Vou reunir alguns dados da sua viagem aérea para já adiantar o seu atendimento. Leva menos de 1 minuto.',
-    perguntaOrigem: 'De qual cidade você vai partir? (origem)',
-    perguntaDestino: 'E para qual cidade você quer ir? (destino)',
-    perguntaPassageiros: 'Para quantos passageiros é a viagem? (1 a 9)',
-    perguntaNomes:
-      'Qual o nome completo do(s) passageiro(s)? Se for mais de um, separe por vírgula.',
+    perguntaOrigem: 'Qual sua cidade ou saída do voo?',
+    perguntaDestino: 'Qual o destino?',
+    perguntaPassageiros: 'Quantos passageiros? (1 a 9)',
+    perguntaNomes: 'Qual seu nome?',
     perguntaDataIda: 'Qual a data de ida? (ex.: 20/07/2026)',
-    perguntaDataVolta: 'E a data de volta? (ex.: 27/07/2026)',
+    perguntaDataVolta: 'Qual a data de volta? (ex.: 27/07/2026)',
     somenteIda: 'Somente ida',
-    perguntaClasse: 'Qual a sua preferência de classe?',
-    classes: ['Econômica', 'Executiva', 'Primeira Classe', 'Sem preferência'],
+    perguntaClasse: 'Tem preferência de horário?',
+    classes: ['Manhã', 'Tarde', 'Noite', 'Tanto faz'],
     perguntaContato:
       'Por fim, qual o seu WhatsApp com DDD? Assim o consultor já te chama por lá. (ex.: (62) 99999-8888)',
     resumoTitulo: 'Perfeito! Registrei os seguintes dados da sua viagem:',
@@ -104,12 +103,11 @@ export const ptBR = {
     resumoNomes: (nomes: string) => `• Nome(s): ${nomes}`,
     resumoIda: (d: string) => `• Ida: ${d}`,
     resumoVolta: (d: string) => `• Volta: ${d}`,
-    resumoClasse: (c: string) => `• Classe: ${c}`,
+    resumoClasse: (c: string) => `• Horário: ${c}`,
     resumoContato: (tel: string) => `• WhatsApp: ${tel}`,
-    direcionando:
-      'Vou te direcionar para um consultor para atendê-lo(a) com as melhores opções. 💚',
+    direcionando: 'Obrigado pelas informações! 🙌',
     encerramento:
-      'Um de nossos consultores já foi avisado e entrará em contato em instantes. Obrigado por escolher a ViajeBrasil!',
+      'Jajá um de nossos consultores vai te atender com seu orçamento.',
     placeholderResposta: 'Digite sua resposta…',
     enviar: 'Enviar',
     erroEnvio:
