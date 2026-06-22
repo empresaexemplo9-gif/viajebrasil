@@ -83,10 +83,10 @@ export function ChatbotAereo({ visivel, aoFechar }: Props) {
     dados.current = {};
     setEntrada('');
     setEnviando(false);
-    setEtapa('origem');
+    setEtapa('nomes');
     setMensagens([
       { id: novoId(), autor: 'bot', texto: t.chatAereo.saudacao },
-      { id: novoId(), autor: 'bot', texto: t.chatAereo.perguntaOrigem },
+      { id: novoId(), autor: 'bot', texto: t.chatAereo.perguntaNomes },
     ]);
     // Gatilho do botão: avisa que um atendimento foi iniciado (melhor-esforço).
     void notificarInicioAtendimentoAereo();
@@ -121,7 +121,6 @@ export function ChatbotAereo({ visivel, aoFechar }: Props) {
         t.chatAereo.resumoIda(lead.dataIda),
         t.chatAereo.resumoVolta(lead.dataVolta ?? t.chatAereo.somenteIda),
         t.chatAereo.resumoClasse(lead.classe),
-        t.chatAereo.resumoContato(lead.telefone),
       ].join('\n'),
     );
 
@@ -169,8 +168,8 @@ export function ChatbotAereo({ visivel, aoFechar }: Props) {
         }
         dados.current.numeroPassageiros = n;
         adicionarCliente(String(n));
-        setEtapa('nomes');
-        adicionarBot(t.chatAereo.perguntaNomes);
+        setEtapa('ida');
+        adicionarBot(t.chatAereo.perguntaDataIda);
         return;
       }
 
@@ -181,8 +180,8 @@ export function ChatbotAereo({ visivel, aoFechar }: Props) {
           .filter(Boolean);
         dados.current.nomes = nomes;
         adicionarCliente(nomes.join(', '));
-        setEtapa('ida');
-        adicionarBot(t.chatAereo.perguntaDataIda);
+        setEtapa('origem');
+        adicionarBot(t.chatAereo.perguntaOrigem);
         return;
       }
 
@@ -231,10 +230,9 @@ export function ChatbotAereo({ visivel, aoFechar }: Props) {
     (classe: string) => {
       dados.current.classe = classe;
       adicionarCliente(classe);
-      setEtapa('contato');
-      adicionarBot(t.chatAereo.perguntaContato);
+      void finalizar();
     },
-    [adicionarBot, adicionarCliente],
+    [adicionarCliente, finalizar],
   );
 
   const enviarEntrada = useCallback(() => {
