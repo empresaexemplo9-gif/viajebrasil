@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { cores, raio, sombra } from '../../src/tema';
 import { t } from '../../src/i18n';
@@ -70,6 +71,7 @@ const SOCIAL: (keyof typeof Ionicons.glyphMap)[] = [
 export default function Inicio() {
   const insets = useSafeAreaInsets();
   const alturaBarra = useBottomTabBarHeight();
+  const router = useRouter();
   const [email, setEmail] = useState('');
   // Chatbot de Passagens Aéreas: atendimento dentro do próprio app.
   const [chatAereoAberto, setChatAereoAberto] = useState(false);
@@ -124,7 +126,7 @@ export default function Inicio() {
                 disabled={c.emBreve}
                 onPress={
                   c.chave === 'onibus'
-                    ? () => abrirWhiteLabel('onibus')
+                    ? () => router.push('/onibus')
                     : c.chave === 'aereo'
                       ? () => setChatAereoAberto(true)
                       : undefined
