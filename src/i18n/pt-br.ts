@@ -360,6 +360,8 @@ export const ptBR = {
     semOfertas: 'Nenhuma oferta cadastrada ainda.',
     inativa: 'inativa',
     popularAtuais: 'Usar as ofertas atuais da home',
+    restaurarPadrao: 'Restaurar ofertas padrão',
+    restaurarConfirma: 'Isto remove TODAS as ofertas atuais da home e recoloca as padrão (5 destaques + 5 ofertas). Continuar?',
     previewTitulo: 'Pré-visualização — é assim que aparece na home',
     toqueEditar: 'Toque para editar',
     enviarFoto: 'Enviar foto',
