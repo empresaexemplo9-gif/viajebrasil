@@ -4,6 +4,18 @@ export { notificarInicioAtendimentoAereo, enviarLeadAereo } from './leads';
 export type { LeadAereo } from './leads';
 export { login, registrar, eu } from './auth';
 export type { UsuarioAuth, SessaoAuth } from './auth';
+export { listarLeads, obterLead, atualizarLead } from './leadsConsultor';
+export type { FiltroLeads } from './leadsConsultor';
+export {
+  listarOfertasHome,
+  listarOfertasAdmin,
+  criarOferta,
+  atualizarOferta,
+  excluirOferta,
+} from './home';
+export { obterEstatisticas } from './admin';
+export type { EstatisticasAdmin } from './admin';
+export { linkWhatsApp } from './whatsapp';
 export { linkCheckoutOficial, abrirCheckoutOficial, linkWhiteLabel, abrirWhiteLabel } from './site';
 export { ErroApi, requisitar } from './cliente';
 export { ENDPOINTS } from './endpoints';

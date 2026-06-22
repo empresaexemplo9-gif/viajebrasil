@@ -1,8 +1,27 @@
 import React from 'react';
 import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import { cores, raio, tipografia } from '../tema';
+import type { StatusLead } from '../tipos';
 
 type Tom = 'verde' | 'amarelo' | 'laranja' | 'azul' | 'erro' | 'neutro';
+
+/** Mapeia o status de um lead para o tom do selo. */
+export function tomStatusLead(status: StatusLead): Tom {
+  switch (status) {
+    case 'novo':
+      return 'azul';
+    case 'atribuido':
+      return 'amarelo';
+    case 'em_atendimento':
+      return 'laranja';
+    case 'convertido':
+      return 'verde';
+    case 'perdido':
+      return 'erro';
+    default:
+      return 'neutro';
+  }
+}
 
 interface Props {
   texto: string;

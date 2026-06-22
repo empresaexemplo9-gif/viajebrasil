@@ -124,6 +124,39 @@ export interface ItemReserva {
   produtoId: string;
 }
 
+/** Status de um lead aéreo (espelha o CHECK do banco). */
+export type StatusLead = 'novo' | 'atribuido' | 'em_atendimento' | 'convertido' | 'perdido';
+
+/** Lead aéreo como vem do banco (`leads_aereo`). */
+export interface Lead {
+  id: string;
+  origem_cidade: string | null;
+  destino_cidade: string | null;
+  numero_passageiros: number;
+  nomes: string[];
+  data_ida: string;
+  data_volta: string | null;
+  classe: string;
+  contato_nome: string | null;
+  contato_telefone: string | null;
+  origem: string | null;
+  status: StatusLead;
+  consultor_id: string | null;
+  criado_em: string;
+}
+
+/** Oferta da home (gerenciada pelo admin, tabela `home_ofertas`). */
+export interface HomeOferta {
+  id: string;
+  titulo: string;
+  cidade: string | null;
+  preco: number | string | null;
+  imagem_url: string | null;
+  badge: string | null;
+  ordem: number;
+  ativo?: boolean;
+}
+
 /** Banner do carrossel da tela inicial (referência: app da Decolar). */
 export interface BannerOferta {
   id: string;

@@ -17,7 +17,7 @@ export { GradienteMarca } from './GradienteMarca';
 export { Cartao } from './Cartao';
 export { Campo } from './Campo';
 export { Chip } from './Chip';
-export { Selo } from './Selo';
+export { Selo, tomStatusLead } from './Selo';
 export { Avatar } from './Avatar';
 export { CartaoEstatistica } from './CartaoEstatistica';
 export { HeroGradiente } from './HeroGradiente';
