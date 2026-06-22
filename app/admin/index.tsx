@@ -14,7 +14,7 @@ function contar(porStatus: EstatisticasAdmin['porStatus'], status: string): numb
 
 export default function PainelAdmin() {
   const router = useRouter();
-  const { sair } = useAutenticacao();
+  const { sair, definirModo } = useAutenticacao();
   const [stats, setStats] = useState<EstatisticasAdmin | null>(null);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
@@ -44,8 +44,15 @@ export default function PainelAdmin() {
         titulo={t.admin.titulo}
         topo={
           <View style={styles.topo}>
-            <Pressable hitSlop={8} onPress={() => router.replace('/(tabs)')}>
-              <Ionicons name="home" size={22} color={cores.textoInverso} />
+            <Pressable
+              hitSlop={8}
+              onPress={() => {
+                definirModo('cliente');
+                router.replace('/(tabs)');
+              }}
+              accessibilityLabel={t.perfil.verComoCliente}
+            >
+              <Ionicons name="eye-outline" size={22} color={cores.textoInverso} />
             </Pressable>
             <Pressable hitSlop={8} onPress={sair}>
               <Ionicons name="log-out-outline" size={22} color={cores.textoInverso} />

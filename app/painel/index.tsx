@@ -26,7 +26,7 @@ function formatarData(iso: string): string {
 
 export default function PainelLeads() {
   const router = useRouter();
-  const { usuario, sair } = useAutenticacao();
+  const { usuario, sair, definirModo } = useAutenticacao();
   const [filtro, setFiltro] = useState<StatusLead | 'todos'>('todos');
   const [leads, setLeads] = useState<Lead[]>([]);
   const [carregando, setCarregando] = useState(true);
@@ -64,8 +64,15 @@ export default function PainelLeads() {
         subtitulo={usuario?.nome ? `Olá, ${usuario.nome}` : undefined}
         topo={
           <View style={styles.topo}>
-            <Pressable hitSlop={8} onPress={() => router.replace('/(tabs)')}>
-              <Ionicons name="home" size={22} color={cores.textoInverso} />
+            <Pressable
+              hitSlop={8}
+              onPress={() => {
+                definirModo('cliente');
+                router.replace('/(tabs)');
+              }}
+              accessibilityLabel={t.perfil.verComoCliente}
+            >
+              <Ionicons name="eye-outline" size={22} color={cores.textoInverso} />
             </Pressable>
             <Pressable hitSlop={8} onPress={sair}>
               <Ionicons name="log-out-outline" size={22} color={cores.textoInverso} />

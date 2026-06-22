@@ -10,8 +10,20 @@ export const ptBR = {
   abas: {
     inicio: 'Início',
     buscar: 'Buscar',
+    atendimento: 'Atendimento',
     reservas: 'Reservas',
     perfil: 'Perfil',
+  },
+  atendimento: {
+    eyebrow: 'Fale com a gente',
+    titulo: 'Atendimento',
+    sub: 'Tire dúvidas e receba as melhores opções de um consultor.',
+    emAndamento: 'Você tem um atendimento em andamento',
+    emAndamentoSub: 'Continue a conversa com o consultor de onde parou.',
+    nenhuma: 'Comece um atendimento',
+    nenhumaSub: 'Conte sua viagem e um consultor te responde por aqui.',
+    abrir: 'Abrir conversa',
+    iniciar: 'Iniciar atendimento',
   },
   categorias: {
     onibus: 'Ônibus',
@@ -206,6 +218,8 @@ export const ptBR = {
     naoLogado: 'Entre para acompanhar suas viagens',
     painelConsultor: 'Painel do consultor',
     administracao: 'Administração',
+    areaInterna: 'Ir para a área interna',
+    verComoCliente: 'Ver como cliente',
   },
   login: {
     titulo: 'Bem-vindo de volta',
