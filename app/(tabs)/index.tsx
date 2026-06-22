@@ -20,6 +20,7 @@ import { cores, espaco, raio, sombras, tipografia } from '../../src/tema';
 import { t } from '../../src/i18n';
 import { Avatar, BotaoInstalarApp, Cartao, ChatbotAereo, HeroGradiente, LogoMarca, Selo } from '../../src/componentes';
 import { abrirWhiteLabel, listarOfertasHome } from '../../src/servicos';
+import { OFERTAS_PADRAO, type OfertaPadrao } from '../../src/dados/ofertasPadrao';
 import type { HomeOferta } from '../../src/tipos';
 
 /** Roxo do card "Corporativo" (só nesta vitrine, fora da paleta base). */
@@ -56,20 +57,13 @@ function paraView(o: HomeOferta): OfertaView {
   };
 }
 
-/** Fallbacks estáticos (quando o backend não tem itens/está fora). */
-const DESTAQUES_FALLBACK: OfertaView[] = [
-  { chave: 'rio', titulo: 'Rio de Janeiro', preco: 189, badge: 'Destino em alta', imagem: foto('rio', 800) },
-  { chave: 'ssa', titulo: 'Salvador', preco: 119, badge: 'Destino em alta', imagem: foto('ssa', 800) },
-  { chave: 'sao', titulo: 'São Paulo', preco: 149, badge: 'Destino em alta', imagem: foto('sao', 800) },
-  { chave: 'floripa', titulo: 'Florianópolis', preco: 199, badge: 'Destino em alta', imagem: foto('floripa', 800) },
-];
-
-const OFERTAS_FALLBACK: OfertaView[] = [
-  { chave: 'rio-o', titulo: 'Rio de Janeiro – RJ', preco: 189, badge: '20% OFF', imagem: foto('rio', 800) },
-  { chave: 'bh-o', titulo: 'Belo Horizonte – MG', preco: 149, badge: '15% OFF', imagem: foto('bh', 800) },
-  { chave: 'sao-o', titulo: 'São Paulo – SP', preco: 129, badge: '10% OFF', imagem: foto('sao', 800) },
-  { chave: 'ssa-o', titulo: 'Salvador – BA', preco: 119, badge: '10% OFF', imagem: foto('ssa', 800) },
-];
+/** Fallbacks estáticos (quando o backend não tem itens/está fora) — derivados
+ *  de OFERTAS_PADRAO (mesma fonte usada pelo admin), com fotos reais. */
+function padraoView(o: OfertaPadrao, i: number): OfertaView {
+  return { chave: `${o.secao}-${i}`, titulo: o.cidade || o.titulo, preco: o.preco, badge: o.badge, imagem: o.imagem_url };
+}
+const DESTAQUES_FALLBACK: OfertaView[] = OFERTAS_PADRAO.filter((o) => o.secao === 'destaque').map(padraoView);
+const OFERTAS_FALLBACK: OfertaView[] = OFERTAS_PADRAO.filter((o) => o.secao === 'oferta').map(padraoView);
 
 const FEATURES = [
   { emoji: '🔒', titulo: t.vitrine.seg1Titulo, sub: t.vitrine.seg1Sub },
