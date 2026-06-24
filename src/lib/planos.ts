@@ -9,6 +9,29 @@
 
 export type ChavePlano = 'free' | 'basico' | 'pro' | 'elite';
 
+/** Valor do enum `Plano` do banco (Prisma). */
+export type PlanoDb = 'free' | 'prime_basico' | 'prime_pro' | 'prime_elite';
+
+const DB_PARA_UI: Record<PlanoDb, ChavePlano> = {
+  free: 'free',
+  prime_basico: 'basico',
+  prime_pro: 'pro',
+  prime_elite: 'elite',
+};
+const UI_PARA_DB: Record<ChavePlano, PlanoDb> = {
+  free: 'free',
+  basico: 'prime_basico',
+  pro: 'prime_pro',
+  elite: 'prime_elite',
+};
+
+export function dePlanoDb(p: string): ChavePlano {
+  return DB_PARA_UI[p as PlanoDb] ?? 'free';
+}
+export function paraPlanoDb(c: ChavePlano): PlanoDb {
+  return UI_PARA_DB[c] ?? 'free';
+}
+
 /** Raio/nível de visibilidade direcionada (1–3) descrito na especificação. */
 export type NivelVisibilidade = 0 | 1 | 2 | 3;
 

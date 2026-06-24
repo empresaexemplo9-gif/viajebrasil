@@ -2,7 +2,7 @@
  * Schemas de validação (zod) compartilhados entre frontend e backend.
  */
 import { z } from 'zod';
-import { REGRA_SENHA } from './server/password';
+import { REGRA_SENHA } from './password-policy';
 
 export const senhaSchema = z
   .string()

@@ -1,6 +1,7 @@
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
-import { encerrarSessao, usuarioAtual } from '@/lib/sessao';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/server/auth';
+import { SairBotao } from './SairBotao';
 
 const navItens = [
   { href: '/perfil', rotulo: 'Perfil' },
@@ -11,25 +12,16 @@ const navItens = [
   { href: '/planos', rotulo: 'Planos' },
 ];
 
-export function Header() {
-  const usuario = usuarioAtual();
-
-  async function sair() {
-    'use server';
-    encerrarSessao();
-    redirect('/');
-  }
+export async function Header() {
+  const session = await getServerSession(authOptions);
+  const usuario = session?.user ?? null;
 
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur">
       <div className="container-app flex h-16 items-center justify-between gap-4">
         <Link href="/" className="flex items-center gap-2">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-marca-600 text-sm font-black text-white">
-            D
-          </span>
-          <span className="text-lg font-black tracking-tight text-tinta">
-            DRAP <span className="text-marca-600">Business</span>
-          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/drap-logo-ink.svg" alt="DRAP Business" className="h-9 w-auto" />
         </Link>
 
         <nav className="hidden items-center gap-1 sm:flex">
@@ -50,11 +42,9 @@ export function Header() {
               href="/painel"
               className="hidden rounded-lg px-3 py-2 text-sm font-bold text-marca-700 hover:bg-marca-50 sm:block"
             >
-              {usuario.nome.split(' ')[0]}
+              {(usuario.name ?? 'Conta').split(' ')[0]}
             </Link>
-            <form action={sair}>
-              <button className="btn-secundario !px-4 !py-2">Sair</button>
-            </form>
+            <SairBotao />
           </div>
         ) : (
           <Link href="/entrar" className="btn-primario !px-4 !py-2">
