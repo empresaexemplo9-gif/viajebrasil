@@ -1,34 +1,19 @@
-# dependências
+# Dependências
 node_modules/
 
-# expo
-.expo/
+# Builds / artefatos
 dist/
-web-build/
-expo-env.d.ts
+build/
+.expo/
+.next/
+out/
 
-# nativo
-*.orig.*
-*.jks
-*.p8
-*.p12
-*.key
-*.mobileprovision
+# Ambiente / segredos
+.env
+.env.*
+!.env.example
 
-# metro
-.metro-health-check*
-
-# debug
-npm-debug.*
-yarn-debug.*
-yarn-error.*
-
-# macOS
+# Sistema / logs
+*.log
 .DS_Store
-
-# env
-.env*.local
-
-# Python
-__pycache__/
-*.pyc
+Thumbs.db
