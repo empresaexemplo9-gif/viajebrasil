@@ -1,24 +1,24 @@
 import type { Config } from 'tailwindcss';
 
-/** Identidade DRAP Business: sóbria, profissional, com destaque em azul/roxo escuro. */
+/** Identidade DRAP Business: cores personalizadas - Paleta azul */
 const config: Config = {
   content: ['./src/**/*.{ts,tsx}'],
   theme: {
     extend: {
       colors: {
         marca: {
-          50: '#EEF2FF',
-          100: '#E0E7FF',
-          200: '#C7D2FE',
-          300: '#A5B4FC',
-          400: '#818CF8',
-          500: '#6366F1',
-          600: '#4F46E5', // primária
-          700: '#4338CA',
-          800: '#312E81',
-          900: '#1E1B4B', // fundo escuro
+          50: '#F0F9FF',   // Azul muito claro
+          100: '#E0F2FE',
+          200: '#BAE6FD',
+          300: '#7DD3FC',
+          400: '#38BDF8',
+          500: '#0EA5E9',
+          600: '#0284C7',  // Primária - Azul vibrante
+          700: '#0369A1',
+          800: '#075985',
+          900: '#0C2340',  // Azul escuro
         },
-        tinta: '#0F172A',
+        tinta: '#0C2340',  // Texto principal - azul escuro
       },
       fontFamily: {
         sans: ['var(--fonte-sans)', 'system-ui', 'sans-serif'],

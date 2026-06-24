@@ -27,7 +27,7 @@ export function Header() {
         <Link href="/" className="flex items-center gap-3">
           <span className="sr-only">DRAP Business — Home</span>
           <Image
-            src="/download.svg"
+            src="/logo-novo.svg"
             alt="DRAP Business"
             width={220}
             height={60}
