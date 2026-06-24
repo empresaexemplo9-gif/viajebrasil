@@ -1,0 +1,111 @@
+// DRAP Business — modelo de dados (PostgreSQL via Prisma).
+// MVP: Perfil unificado, Vagas + match, Vitrine, Feed de captação.
+// Fase 2: integrações sociais, CRM, propostas, grupos, gamificação.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TipoPerfil {
+  PESSOA
+  EMPRESA
+  AUTONOMO
+  PRODUTO
+}
+
+enum TipoVaga {
+  CLT
+  PJ
+  FREELA
+}
+
+enum TipoPost {
+  BUSCA_SERVICO
+  BUSCA_PARCEIRO
+  DISPONIVEL
+  PRODUTO
+}
+
+/// Perfil unificado: pessoa física, empresa, autônomo ou produto/serviço.
+model Perfil {
+  id           String      @id @default(cuid())
+  tipo         TipoPerfil
+  nome         String
+  areaAtuacao  String
+  regiao       String
+  bio          String?
+  contato      String?
+  site         String?
+  habilidades  String[]    @default([])
+  /// Score de completude/atividade (0–100), usado no ranqueamento das buscas.
+  score        Int         @default(0)
+  criadoEm     DateTime    @default(now())
+  atualizadoEm DateTime    @updatedAt
+
+  vagas        Vaga[]      @relation("EmpresaVagas")
+  candidaturas Candidatura[]
+  servicos     Servico[]
+  posts        PostFeed[]
+}
+
+/// Vaga publicada por uma empresa/autônomo.
+model Vaga {
+  id          String   @id @default(cuid())
+  titulo      String
+  tipo        TipoVaga
+  area        String
+  regiao      String
+  habilidades String[] @default([])
+  descricao   String
+  salario     String?
+  ativa       Boolean  @default(true)
+  criadoEm    DateTime @default(now())
+
+  empresa   Perfil @relation("EmpresaVagas", fields: [empresaId], references: [id])
+  empresaId String
+}
+
+/// Currículo/candidatura de um profissional a uma vaga (match por habilidade/região/área).
+model Candidatura {
+  id          String   @id @default(cuid())
+  habilidades String[] @default([])
+  area        String
+  regiao      String
+  resumo      String?
+  criadoEm    DateTime @default(now())
+
+  perfil   Perfil @relation(fields: [perfilId], references: [id])
+  perfilId String
+}
+
+/// Item da vitrine/marketplace: serviço ou produto de um perfil.
+model Servico {
+  id            String   @id @default(cuid())
+  titulo        String
+  descricao     String
+  preco         Decimal? @db.Decimal(12, 2)
+  prazoEntrega  String?
+  regiao        String
+  imagemUrl     String?
+  criadoEm      DateTime @default(now())
+
+  perfil   Perfil @relation(fields: [perfilId], references: [id])
+  perfilId String
+}
+
+/// Post do feed de captação (cliente buscando, parceiro, disponível, produto).
+model PostFeed {
+  id        String   @id @default(cuid())
+  tipo      TipoPost
+  texto     String
+  regiao    String?
+  criadoEm  DateTime @default(now())
+
+  autor   Perfil @relation(fields: [autorId], references: [id])
+  autorId String
+}
