@@ -13,8 +13,15 @@ const navItens = [
 ];
 
 export async function Header() {
-  const session = await getServerSession(authOptions);
-  const usuario = session?.user ?? null;
+  // Tolerante a má configuração: se a sessão falhar (ex.: sem NEXTAUTH_SECRET),
+  // renderiza como deslogado em vez de quebrar todas as páginas.
+  let usuario: { name?: string | null } | null = null;
+  try {
+    const session = await getServerSession(authOptions);
+    usuario = session?.user ?? null;
+  } catch {
+    usuario = null;
+  }
 
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur">

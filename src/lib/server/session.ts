@@ -16,7 +16,15 @@ export interface ContextoAuth {
 }
 
 export async function obterContexto(): Promise<ContextoAuth | null> {
-  const session = await getServerSession(authOptions);
+  // Tolerante a má configuração (ex.: NEXTAUTH_SECRET ausente): trata como
+  // deslogado em vez de derrubar a renderização das páginas públicas.
+  let session: Awaited<ReturnType<typeof getServerSession>> = null;
+  try {
+    session = await getServerSession(authOptions);
+  } catch (e) {
+    console.error('obterContexto: falha ao ler sessão —', (e as Error).message);
+    return null;
+  }
   if (!session?.user?.tenantId) return null;
   return {
     userId: session.user.id,
