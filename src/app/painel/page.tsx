@@ -1,6 +1,8 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { usuarioAtual } from '@/lib/sessao';
-import { atualizarPerfil, type Usuario } from '@/lib/usuarios';
+import { atualizarPerfil, emTrial, planoVigente, type Usuario } from '@/lib/usuarios';
+import { obterPlano } from '@/lib/planos';
 import type { TipoPerfil } from '@/lib/dados';
 
 export const metadata = { title: 'Meu painel' };
@@ -26,6 +28,7 @@ export default function PainelPage() {
 
   const u: Usuario = usuario;
   const completude = calcularCompletude(u);
+  const plano = obterPlano(planoVigente(u));
 
   return (
     <div className="container-app py-12">
@@ -37,6 +40,34 @@ export default function PainelPage() {
         <div className="text-right">
           <div className="text-2xl font-black text-marca-600">{completude}%</div>
           <div className="text-xs font-semibold text-slate-400">perfil completo</div>
+        </div>
+      </div>
+
+      {/* Plano atual */}
+      <div className="cartao mt-8 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className={`selo ${plano.prime ? 'bg-marca-600 text-white' : 'bg-slate-100 text-slate-600'}`}>
+              {plano.nome}
+            </span>
+            {emTrial(u) && <span className="selo bg-amber-100 text-amber-700">Teste grátis</span>}
+          </div>
+          <p className="mt-2 text-sm text-slate-600">
+            {plano.prime
+              ? 'IA de classificação de currículos e visibilidade direcionada ativas.'
+              : 'Assine o Prime para a IA ranquear seus currículos e ampliar seu alcance.'}
+          </p>
+        </div>
+        <div className="flex gap-2">
+          {plano.prime ? (
+            <Link href="/painel/prime" className="btn-primario !py-2">
+              Painel de visibilidade
+            </Link>
+          ) : (
+            <Link href="/planos" className="btn-primario !py-2">
+              Conhecer o Prime
+            </Link>
+          )}
         </div>
       </div>
 

@@ -6,6 +6,7 @@ const modulos = [
   { nome: 'Vitrine e Marketplace', desc: 'Serviços e produtos com preço, prazo e proposta direta.', href: '/vitrine', mvp: true },
   { nome: 'Rede de Captação', desc: 'Feed com quem busca, quem oferece e quem está disponível.', href: '/feed', mvp: true },
   { nome: 'Marketing Automatizado', desc: 'Crie uma vez, publique em todas as redes. Conteúdo com IA.', href: '/marketing', mvp: true },
+  { nome: 'Planos e IA de Classificação', desc: 'Prime: IA lê e ranqueia currículos e dá visibilidade direcionada.', href: '/planos', mvp: true },
   { nome: 'Integração com Redes Sociais', desc: 'OAuth com Instagram, LinkedIn, WhatsApp e TikTok.', href: null, mvp: false },
   { nome: 'CRM Nativo', desc: 'Leads e candidatos caem num funil visual com histórico.', href: null, mvp: false },
   { nome: 'Central de Propostas', desc: 'Gera proposta em PDF/link e dispara pelos canais.', href: null, mvp: false },

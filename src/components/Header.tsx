@@ -8,6 +8,7 @@ const navItens = [
   { href: '/vitrine', rotulo: 'Vitrine' },
   { href: '/feed', rotulo: 'Captação' },
   { href: '/marketing', rotulo: 'Marketing' },
+  { href: '/planos', rotulo: 'Planos' },
 ];
 
 export function Header() {

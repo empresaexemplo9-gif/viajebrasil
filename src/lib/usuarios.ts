@@ -9,6 +9,7 @@
  */
 import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import type { TipoPerfil } from './dados';
+import type { ChavePlano } from './planos';
 
 export interface Usuario {
   id: string;
@@ -16,6 +17,10 @@ export interface Usuario {
   email: string;
   hash: string;
   salt: string;
+  /** Plano de assinatura. Free por padrão; Prime libera a IA de classificação. */
+  plano: ChavePlano;
+  /** Fim do teste grátis (timestamp ms). Indefinido = sem trial ativo. */
+  trialAte?: number;
   perfil: {
     tipo: TipoPerfil;
     areaAtuacao: string;
@@ -44,6 +49,7 @@ export function registrar(nome: string, email: string, senha: string): Usuario {
     email: e,
     salt,
     hash: hashSenha(senha, salt),
+    plano: 'free',
     perfil: { tipo: 'pessoa', areaAtuacao: '', regiao: '', bio: '' },
   };
   usuarios.push(usuario);
@@ -68,4 +74,29 @@ export function porId(id: string): Usuario | undefined {
 export function atualizarPerfil(id: string, dados: Partial<Usuario['perfil']>): void {
   const u = porId(id);
   if (u) u.perfil = { ...u.perfil, ...dados };
+}
+
+/** Assina/troca o plano. `trialDias > 0` inicia um teste grátis. */
+export function definirPlano(id: string, plano: ChavePlano, trialDias = 0): void {
+  const u = porId(id);
+  if (!u) return;
+  u.plano = plano;
+  u.trialAte = trialDias > 0 ? Date.now() + trialDias * 24 * 60 * 60 * 1000 : undefined;
+}
+
+export function cancelarPlano(id: string): void {
+  const u = porId(id);
+  if (!u) return;
+  u.plano = 'free';
+  u.trialAte = undefined;
+}
+
+/** Considera o plano ativo respeitando o fim do trial (se houver). */
+export function planoVigente(u: Usuario): ChavePlano {
+  if (u.trialAte && Date.now() > u.trialAte) return 'free';
+  return u.plano;
+}
+
+export function emTrial(u: Usuario): boolean {
+  return Boolean(u.trialAte && Date.now() <= u.trialAte);
 }
