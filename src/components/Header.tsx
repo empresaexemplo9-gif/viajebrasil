@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { encerrarSessao, usuarioAtual } from '@/lib/sessao';
@@ -23,13 +24,16 @@ export function Header() {
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur">
       <div className="container-app flex h-16 items-center justify-between gap-4">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-marca-600 text-sm font-black text-white">
-            D
-          </span>
-          <span className="text-lg font-black tracking-tight text-tinta">
-            DRAP <span className="text-marca-600">Business</span>
-          </span>
+        <Link href="/" className="flex items-center gap-3">
+          <span className="sr-only">DRAP Business — Home</span>
+          <Image
+            src="/download.svg"
+            alt="DRAP Business"
+            width={220}
+            height={60}
+            priority
+            className="block h-auto w-auto"
+          />
         </Link>
 
         <nav className="hidden items-center gap-1 sm:flex">
