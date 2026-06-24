@@ -17,3 +17,7 @@ out/
 *.log
 .DS_Store
 Thumbs.db
+
+# TypeScript / Next gerados
+*.tsbuildinfo
+next-env.d.ts
