@@ -31,11 +31,14 @@ export async function middleware(req: NextRequest) {
   return NextResponse.next();
 }
 
-// Escopo só nas APIs de domínio do back-end novo. As páginas de demonstração
-// (/painel, /painel/prime) mantêm o guard próprio até serem migradas para o
-// NextAuth — assim a demo continua no ar enquanto a fundação é ativada.
+// Rotas protegidas: painel/marketing/admin e as APIs de domínio exigem tenant
+// válido no token. Páginas públicas (home, vitrine, vagas, feed, perfil, planos)
+// ficam livres.
 export const config = {
   matcher: [
+    '/painel/:path*',
+    '/marketing/:path*',
+    '/admin/:path*',
     '/api/jobs/:path*',
     '/api/applications/:path*',
     '/api/products/:path*',

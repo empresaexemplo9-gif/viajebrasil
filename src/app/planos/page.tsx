@@ -1,11 +1,12 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { usuarioAtual } from '@/lib/sessao';
-import { definirPlano } from '@/lib/usuarios';
+import { obterContexto } from '@/lib/server/session';
+import { assinarPlano } from '@/lib/server/repos';
 import {
   listarPlanos,
   precoFormatado,
   limiteCurriculos,
+  dePlanoDb,
   type ChavePlano,
 } from '@/lib/planos';
 
@@ -13,21 +14,21 @@ export const metadata = { title: 'Planos e visibilidade' };
 
 const TRIAL_DIAS = 7;
 
-export default function PlanosPage({
+export default async function PlanosPage({
   searchParams,
 }: {
   searchParams?: { ok?: string };
 }) {
-  const usuario = usuarioAtual();
+  const usuario = await obterContexto();
   const planos = listarPlanos();
 
   async function assinar(formData: FormData) {
     'use server';
-    const atual = usuarioAtual();
+    const atual = await obterContexto();
     if (!atual) redirect('/entrar?proximo=/planos');
     const chave = String(formData.get('plano') ?? 'free') as ChavePlano;
     const trial = String(formData.get('trial') ?? '') === '1';
-    definirPlano(atual.id, chave, trial ? TRIAL_DIAS : 0);
+    await assinarPlano(atual.tenantId, chave, trial ? TRIAL_DIAS : 0);
     redirect(`/painel/prime?ok=${trial ? 'trial' : 'assinado'}`);
   }
 
@@ -51,7 +52,7 @@ export default function PlanosPage({
 
       <div className="mt-10 grid gap-5 lg:grid-cols-4 sm:grid-cols-2">
         {planos.map((p) => {
-          const atual = usuario?.plano === p.chave;
+          const atual = usuario ? dePlanoDb(usuario.plano) === p.chave : false;
           return (
             <div
               key={p.chave}
