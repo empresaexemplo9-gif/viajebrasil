@@ -2,7 +2,7 @@
  * Helpers de sessão no servidor: lê o usuário autenticado e aplica RBAC.
  * Usados em route handlers e Server Components.
  */
-import { getServerSession } from 'next-auth';
+import { getServerSession, type Session } from 'next-auth';
 import { authOptions } from './auth';
 import { pode, type Papel, type Permissao } from '../rbac';
 
@@ -18,7 +18,7 @@ export interface ContextoAuth {
 export async function obterContexto(): Promise<ContextoAuth | null> {
   // Tolerante a má configuração (ex.: NEXTAUTH_SECRET ausente): trata como
   // deslogado em vez de derrubar a renderização das páginas públicas.
-  let session: Awaited<ReturnType<typeof getServerSession>> = null;
+  let session: Session | null = null;
   try {
     session = await getServerSession(authOptions);
   } catch (e) {

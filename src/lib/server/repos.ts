@@ -30,8 +30,8 @@ export async function carregarUsuario(
   userId: string,
 ): Promise<UsuarioView | null> {
   return withTenant(tenantId, async (db) => {
-    const u = await db.user.findUnique({
-      where: { id: userId },
+    const u = await db.user.findFirst({
+      where: { id: userId, tenantId },
       include: { profile: true, tenant: true },
     });
     if (!u) return null;
@@ -62,9 +62,9 @@ export async function salvarPerfil(
   dados: { areaAtuacao: string; regiao: string; bio: string },
 ): Promise<void> {
   await withTenant(tenantId, async (db) => {
-    const existe = await db.profile.findUnique({ where: { userId } });
+    const existe = await db.profile.findFirst({ where: { userId, tenantId } });
     if (existe) {
-      await db.profile.update({ where: { userId }, data: dados });
+      await db.profile.update({ where: { id: existe.id }, data: dados });
     } else {
       await db.profile.create({
         data: { tenantId, userId, tipo: 'empresa_contratante', ...dados },
@@ -82,7 +82,7 @@ export interface VagaView {
 export async function listarVagas(tenantId: string): Promise<VagaView[]> {
   return withTenant(tenantId, (db) =>
     db.job
-      .findMany({ orderBy: { criadoEm: 'desc' }, take: 50 })
+      .findMany({ where: { tenantId }, orderBy: { criadoEm: 'desc' }, take: 50 })
       .then((vs) => vs.map((v) => ({ id: v.id, titulo: v.titulo, status: v.status }))),
   );
 }
@@ -104,13 +104,13 @@ export async function ranquearCandidatos(
 ): Promise<CandidatoRanqueado[]> {
   return withTenant(tenantId, async (db) => {
     const apps = await db.application.findMany({
-      where: { jobId },
+      where: { jobId, tenantId },
       include: { candidate: { include: { profile: true } } },
       orderBy: { scoreIa: 'desc' },
     });
     // Resumos de IA por referência (application.id).
     const analises = await db.aiAnalysis.findMany({
-      where: { tipo: 'curriculo', referenciaId: { in: apps.map((a) => a.id) } },
+      where: { tenantId, tipo: 'curriculo', referenciaId: { in: apps.map((a) => a.id) } },
     });
     const resumoPorRef = new Map(analises.map((a) => [a.referenciaId, a.resumo ?? '']));
 
@@ -144,7 +144,7 @@ export async function metricasPrime(tenantId: string): Promise<MetricasPrime> {
     const agg = await db.application.aggregate({
       _count: { _all: true },
       _avg: { scoreIa: true },
-      where: { scoreIa: { not: null } },
+      where: { tenantId, scoreIa: { not: null } },
     });
     return {
       curriculosAnalisados: agg._count._all,
