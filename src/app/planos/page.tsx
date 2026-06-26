@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { obterContexto } from '@/lib/server/session';
 import { assinarPlano } from '@/lib/server/repos';
+import { stripeAtivo } from '@/lib/server/stripe';
+import { criarCheckout, criarPortal } from '@/lib/server/assinatura';
 import {
   listarPlanos,
   precoFormatado,
@@ -21,6 +23,7 @@ export default async function PlanosPage({
 }) {
   const usuario = await obterContexto();
   const planos = listarPlanos();
+  const planoAtual = usuario ? dePlanoDb(usuario.plano) : 'free';
 
   async function assinar(formData: FormData) {
     'use server';
@@ -28,8 +31,20 @@ export default async function PlanosPage({
     if (!atual) redirect('/entrar?proximo=/planos');
     const chave = String(formData.get('plano') ?? 'free') as ChavePlano;
     const trial = String(formData.get('trial') ?? '') === '1';
+    // Com Stripe configurado, planos pagos vão para o checkout real.
+    if (stripeAtivo() && chave !== 'free') {
+      const url = await criarCheckout({ tenantId: atual.tenantId, email: atual.email, chave, trial });
+      redirect(url);
+    }
     await assinarPlano(atual.tenantId, chave, trial ? TRIAL_DIAS : 0);
     redirect(`/painel/prime?ok=${trial ? 'trial' : 'assinado'}`);
+  }
+
+  async function gerenciar() {
+    'use server';
+    const atual = await obterContexto();
+    if (!atual) redirect('/entrar?proximo=/planos');
+    redirect(await criarPortal(atual.tenantId));
   }
 
   return (
@@ -131,6 +146,12 @@ export default async function PlanosPage({
           );
         })}
       </div>
+
+      {stripeAtivo() && planoAtual !== 'free' && (
+        <form action={gerenciar} className="mt-8">
+          <button className="btn-secundario">Gerenciar assinatura (pagamento, cancelar)</button>
+        </form>
+      )}
 
       <p className="mt-8 text-sm text-slate-500">
         Já é Prime?{' '}

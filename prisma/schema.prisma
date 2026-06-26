@@ -119,6 +119,7 @@ model Tenant {
   configuracoes     Json             @default("{}")
   logoUrl           String?
   dominioCustomizado String?         @unique
+  stripeCustomerId  String?          @unique
   criadoEm          DateTime         @default(now())
   atualizadoEm      DateTime         @updatedAt
 
