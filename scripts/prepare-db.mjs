@@ -12,6 +12,10 @@
  */
 import { execSync } from 'node:child_process';
 
+// Desliga a telemetria do Prisma (evita chamadas de rede que podem falhar o build).
+process.env.CHECKPOINT_DISABLE = '1';
+process.env.PRISMA_HIDE_UPDATE_MESSAGE = '1';
+
 if (!process.env.DATABASE_URL) {
   console.warn('[prepare-db] DATABASE_URL ausente — pulando (configure o Postgres na Vercel).');
   process.exit(0);
