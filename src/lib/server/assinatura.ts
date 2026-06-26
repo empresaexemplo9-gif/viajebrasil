@@ -7,9 +7,29 @@
 import type Stripe from 'stripe';
 import { prisma } from './prisma';
 import { getStripe, priceIdDe, planoDePriceId, urlBase } from './stripe';
-import { paraPlanoDb, type ChavePlano } from '../planos';
+import { obterPlano, paraPlanoDb, type ChavePlano } from '../planos';
 
 const TRIAL_DIAS = 7;
+
+/**
+ * Item da assinatura: usa o Price configurado (STRIPE_PRICE_*) se houver; senão
+ * gera o preço na hora a partir dos valores da plataforma — assim não é preciso
+ * cadastrar produtos no Stripe manualmente.
+ */
+function construirLineItem(chave: ChavePlano): Stripe.Checkout.SessionCreateParams.LineItem {
+  const priceId = priceIdDe(chave);
+  if (priceId) return { price: priceId, quantity: 1 };
+  const plano = obterPlano(chave);
+  return {
+    quantity: 1,
+    price_data: {
+      currency: 'brl',
+      product_data: { name: `DRAP ${plano.nome}` },
+      unit_amount: Math.round(plano.preco * 100),
+      recurring: { interval: 'month' },
+    },
+  };
+}
 
 /** Garante (e persiste) o Customer do Stripe para o tenant. */
 export async function garantirCustomer(tenantId: string, email?: string | null): Promise<string> {
@@ -32,15 +52,18 @@ export async function criarCheckout(opts: {
   chave: ChavePlano;
   trial: boolean;
 }): Promise<string> {
-  const price = priceIdDe(opts.chave);
-  if (!price) throw new Error(`Price do Stripe não configurado para o plano ${opts.chave}`);
+  if (opts.chave === 'free') throw new Error('Plano Free não passa por checkout');
   const customer = await garantirCustomer(opts.tenantId, opts.email);
   const base = urlBase();
+  const subData: Stripe.Checkout.SessionCreateParams.SubscriptionData = {
+    metadata: { tenantId: opts.tenantId, chave: opts.chave },
+  };
+  if (opts.trial) subData.trial_period_days = TRIAL_DIAS;
   const session = await getStripe().checkout.sessions.create({
     mode: 'subscription',
     customer,
-    line_items: [{ price, quantity: 1 }],
-    subscription_data: opts.trial ? { trial_period_days: TRIAL_DIAS } : undefined,
+    line_items: [construirLineItem(opts.chave)],
+    subscription_data: subData,
     success_url: `${base}/painel/prime?ok=assinado`,
     cancel_url: `${base}/planos`,
     allow_promotion_codes: true,
@@ -81,8 +104,9 @@ async function sincronizarAssinatura(sub: Stripe.Subscription): Promise<void> {
   const tenant = await prisma.tenant.findFirst({ where: { stripeCustomerId: customerId } });
   if (!tenant) return;
 
-  const priceId = sub.items.data[0]?.price.id;
-  const chave = planoDePriceId(priceId);
+  // Plano: prioriza o metadata gravado na assinatura; cai no mapa de Price IDs.
+  const chaveMeta = sub.metadata?.chave as ChavePlano | undefined;
+  const chave = chaveMeta ?? planoDePriceId(sub.items.data[0]?.price.id);
   const ativo = sub.status === 'active' || sub.status === 'trialing';
   const statusDb = mapStatus(sub.status);
   const renovaEm = sub.current_period_end ? new Date(sub.current_period_end * 1000) : null;
