@@ -19,11 +19,14 @@ export interface UsuarioView {
   tipoPerfil: string;
   scoreIa: number;
   plano: ChavePlano;
+  avatarUrl: string;
   perfil: {
     tipo: string;
     areaAtuacao: string;
     regiao: string;
     bio: string;
+    bannerUrl: string;
+    representa: string;
     visibilidadePublica: boolean;
   } | null;
 }
@@ -47,12 +50,15 @@ export async function carregarUsuario(
       tipoPerfil: u.tipoPerfil,
       scoreIa: u.scoreIa,
       plano: dePlanoDb(u.tenant.plano),
+      avatarUrl: u.avatarUrl ?? '',
       perfil: u.profile
         ? {
             tipo: u.profile.tipo,
             areaAtuacao: u.profile.areaAtuacao ?? '',
             regiao: u.profile.regiao ?? '',
             bio: u.profile.bio ?? '',
+            bannerUrl: u.profile.bannerUrl ?? '',
+            representa: u.profile.representa ?? '',
             visibilidadePublica: u.profile.visibilidadePublica,
           }
         : null,
@@ -60,21 +66,126 @@ export async function carregarUsuario(
   });
 }
 
+export interface DadosPerfil {
+  areaAtuacao: string;
+  regiao: string;
+  bio: string;
+  bannerUrl: string;
+  representa: string;
+  avatarUrl: string;
+  visibilidadePublica: boolean;
+}
+
 export async function salvarPerfil(
   tenantId: string,
   userId: string,
-  dados: { areaAtuacao: string; regiao: string; bio: string },
+  dados: DadosPerfil,
 ): Promise<void> {
   await withTenant(tenantId, async (db) => {
+    await db.user.update({ where: { id: userId }, data: { avatarUrl: dados.avatarUrl || null } });
+    const campos = {
+      areaAtuacao: dados.areaAtuacao,
+      regiao: dados.regiao,
+      bio: dados.bio,
+      bannerUrl: dados.bannerUrl || null,
+      representa: dados.representa || null,
+      visibilidadePublica: dados.visibilidadePublica,
+    };
     const existe = await db.profile.findFirst({ where: { userId, tenantId } });
     if (existe) {
-      await db.profile.update({ where: { id: existe.id }, data: dados });
+      await db.profile.update({ where: { id: existe.id }, data: campos });
     } else {
-      await db.profile.create({
-        data: { tenantId, userId, tipo: 'empresa_contratante', ...dados },
-      });
+      await db.profile.create({ data: { tenantId, userId, tipo: 'empresa_contratante', ...campos } });
     }
   });
+}
+
+// ───────────────────────── Diretório de perfis (busca pública) ─────────────────────────
+
+export interface PerfilPublico {
+  id: string; // userId
+  nome: string;
+  avatarUrl: string;
+  bannerUrl: string;
+  tipoPerfil: string; // pessoa_fisica | empresa | autonomo
+  tipoProfile: string; // candidato | empresa_contratante | vendedor | comprador
+  areaAtuacao: string;
+  regiao: string;
+  representa: string;
+  bio: string;
+  destaque: string | null;
+}
+
+export interface FiltrosPerfil {
+  q?: string;
+  tipoPerfil?: string; // User.tipoPerfil
+  tipoProfile?: string; // Profile.tipo
+  area?: string;
+  regiao?: string;
+}
+
+/** Busca pública de perfis (visíveis), ordenada por destaque do plano. */
+export async function buscarPerfis(f: FiltrosPerfil): Promise<PerfilPublico[]> {
+  const q = f.q?.trim();
+  const profs = await prisma.profile.findMany({
+    where: {
+      visibilidadePublica: true,
+      ...(f.tipoProfile ? { tipo: f.tipoProfile as never } : {}),
+      ...(f.area ? { areaAtuacao: { contains: f.area, mode: 'insensitive' } } : {}),
+      ...(f.regiao ? { regiao: { contains: f.regiao, mode: 'insensitive' } } : {}),
+      ...(f.tipoPerfil ? { user: { is: { tipoPerfil: f.tipoPerfil as never } } } : {}),
+      ...(q
+        ? {
+            OR: [
+              { user: { is: { nome: { contains: q, mode: 'insensitive' } } } },
+              { representa: { contains: q, mode: 'insensitive' } },
+              { areaAtuacao: { contains: q, mode: 'insensitive' } },
+              { bio: { contains: q, mode: 'insensitive' } },
+            ],
+          }
+        : {}),
+    },
+    include: { user: { select: { nome: true, avatarUrl: true, tipoPerfil: true } }, tenant: { select: { plano: true } } },
+    take: 120,
+  });
+  const mapeado = profs.map((p) => ({
+    perfil: {
+      id: p.userId,
+      nome: p.user.nome,
+      avatarUrl: p.user.avatarUrl ?? '',
+      bannerUrl: p.bannerUrl ?? '',
+      tipoPerfil: p.user.tipoPerfil,
+      tipoProfile: p.tipo,
+      areaAtuacao: p.areaAtuacao ?? '',
+      regiao: p.regiao ?? '',
+      representa: p.representa ?? '',
+      bio: p.bio ?? '',
+      destaque: rotuloDestaque(dePlanoDb(p.tenant.plano)),
+    } as PerfilPublico,
+    plano: dePlanoDb(p.tenant.plano),
+  }));
+  return ordenarPorVisibilidade(mapeado, () => 0, (x) => x.plano).map((x) => x.perfil);
+}
+
+export async function perfilPublicoPorId(userId: string): Promise<PerfilPublico | null> {
+  const p = await prisma.profile.findFirst({
+    where: { userId, visibilidadePublica: true },
+    include: { user: { select: { nome: true, avatarUrl: true, tipoPerfil: true } }, tenant: { select: { plano: true } } },
+  });
+  if (!p) return null;
+  return {
+    id: p.userId,
+    nome: p.user.nome,
+    avatarUrl: p.user.avatarUrl ?? '',
+    bannerUrl: p.bannerUrl ?? '',
+    tipoPerfil: p.user.tipoPerfil,
+    tipoProfile: p.tipo,
+    areaAtuacao: p.areaAtuacao ?? '',
+    regiao: p.regiao ?? '',
+    representa: p.representa ?? '',
+    bio: p.bio ?? '',
+    destaque: rotuloDestaque(dePlanoDb(p.tenant.plano)),
+  };
 }
 
 export interface VagaView {
@@ -224,10 +335,32 @@ function listaSeparada(v: string): string[] {
     .filter(Boolean);
 }
 
-/** Board público: vagas abertas de todos os negócios. */
-export async function listarVagasPublicas(): Promise<VagaPublica[]> {
+export interface FiltrosVaga {
+  q?: string;
+  area?: string;
+  regiao?: string;
+  tipoContrato?: string;
+}
+
+/** Board público: vagas abertas de todos os negócios (com filtros opcionais). */
+export async function listarVagasPublicas(f: FiltrosVaga = {}): Promise<VagaPublica[]> {
+  const q = f.q?.trim();
   const jobs = await prisma.job.findMany({
-    where: { status: 'aberta' },
+    where: {
+      status: 'aberta',
+      ...(f.area ? { area: { contains: f.area, mode: 'insensitive' } } : {}),
+      ...(f.regiao ? { regiao: { contains: f.regiao, mode: 'insensitive' } } : {}),
+      ...(f.tipoContrato ? { tipoContrato: f.tipoContrato as never } : {}),
+      ...(q
+        ? {
+            OR: [
+              { titulo: { contains: q, mode: 'insensitive' } },
+              { descricao: { contains: q, mode: 'insensitive' } },
+              { habilidades: { has: q } },
+            ],
+          }
+        : {}),
+    },
     include: { tenant: { select: { nome: true } } },
     orderBy: { criadoEm: 'desc' },
     take: 100,
@@ -415,6 +548,7 @@ export interface ItemVitrine {
   id: string;
   nome: string;
   vendedor: string;
+  tipo: string; // produto | servico
   categoria: string;
   preco: string;
   regiao: string;
@@ -430,10 +564,32 @@ function precoFmt(preco: unknown): string {
   return n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+export interface FiltrosVitrine {
+  q?: string;
+  tipo?: string; // produto | servico
+  categoria?: string;
+  regiao?: string;
+}
+
 /** Vitrine pública: produtos/serviços ativos, ordenados por relevância + plano. */
-export async function listarVitrine(): Promise<ItemVitrine[]> {
+export async function listarVitrine(f: FiltrosVitrine = {}): Promise<ItemVitrine[]> {
+  const q = f.q?.trim();
   const produtos = await prisma.product.findMany({
-    where: { status: 'ativo' },
+    where: {
+      status: 'ativo',
+      ...(f.tipo ? { tipo: f.tipo as never } : {}),
+      ...(f.categoria ? { categoria: { contains: f.categoria, mode: 'insensitive' } } : {}),
+      ...(f.regiao ? { regiaoAtendimento: { contains: f.regiao, mode: 'insensitive' } } : {}),
+      ...(q
+        ? {
+            OR: [
+              { nome: { contains: q, mode: 'insensitive' } },
+              { descricao: { contains: q, mode: 'insensitive' } },
+              { categoria: { contains: q, mode: 'insensitive' } },
+            ],
+          }
+        : {}),
+    },
     include: { seller: { select: { nome: true } }, tenant: { select: { nome: true, plano: true } } },
     orderBy: { criadoEm: 'desc' },
     take: 100,
@@ -445,6 +601,7 @@ export async function listarVitrine(): Promise<ItemVitrine[]> {
         id: p.id,
         nome: p.nome,
         vendedor: p.seller?.nome ?? p.tenant.nome,
+        tipo: p.tipo,
         categoria: p.categoria ?? 'Geral',
         preco: precoFmt(p.preco),
         regiao: p.regiaoAtendimento ?? 'Remoto',
@@ -463,6 +620,7 @@ export async function listarVitrine(): Promise<ItemVitrine[]> {
 export interface NovoProduto {
   nome: string;
   descricao: string;
+  tipo: string; // produto | servico
   categoria: string;
   preco: string;
   regiao: string;
@@ -478,6 +636,7 @@ export async function criarProduto(tenantId: string, userId: string, dados: Novo
         sellerId: userId,
         nome: dados.nome,
         descricao: dados.descricao,
+        tipo: (dados.tipo === 'servico' ? 'servico' : 'produto') as never,
         categoria: dados.categoria || null,
         preco: Number.isFinite(precoNum) && precoNum > 0 ? precoNum.toFixed(2) : null,
         regiaoAtendimento: dados.regiao || null,
@@ -507,4 +666,49 @@ export async function removerProduto(tenantId: string, id: string): Promise<void
   await withTenant(tenantId, (db) =>
     db.product.updateMany({ where: { id, tenantId }, data: { status: 'inativo' } }),
   );
+}
+
+/** Itens públicos de um perfil: seus produtos/serviços ativos e vagas abertas. */
+export async function itensDoPerfil(
+  userId: string,
+): Promise<{ produtos: ItemVitrine[]; vagas: VagaPublica[] }> {
+  const [prods, jobs] = await Promise.all([
+    prisma.product.findMany({
+      where: { sellerId: userId, status: 'ativo' },
+      include: { seller: { select: { nome: true } }, tenant: { select: { nome: true, plano: true } } },
+      take: 50,
+    }),
+    prisma.job.findMany({
+      where: { empresaId: userId, status: 'aberta' },
+      include: { tenant: { select: { nome: true } } },
+      take: 50,
+    }),
+  ]);
+  const produtos: ItemVitrine[] = prods.map((p) => {
+    const plano = dePlanoDb(p.tenant.plano);
+    return {
+      id: p.id,
+      nome: p.nome,
+      vendedor: p.seller?.nome ?? p.tenant.nome,
+      tipo: p.tipo,
+      categoria: p.categoria ?? 'Geral',
+      preco: precoFmt(p.preco),
+      regiao: p.regiaoAtendimento ?? 'Remoto',
+      descricao: p.descricao,
+      destaque: rotuloDestaque(plano),
+      alcance: alcanceLabel(plano),
+    };
+  });
+  const vagas: VagaPublica[] = jobs.map((j) => ({
+    id: j.id,
+    titulo: j.titulo,
+    empresa: j.tenant.nome,
+    area: j.area ?? '—',
+    regiao: j.regiao ?? 'Remoto',
+    nivel: j.nivel,
+    tipoContrato: j.tipoContrato,
+    descricao: j.descricao,
+    habilidades: j.habilidades,
+  }));
+  return { produtos, vagas };
 }

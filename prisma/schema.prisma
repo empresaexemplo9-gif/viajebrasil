@@ -96,6 +96,11 @@ enum StatusProduto {
   esgotado
 }
 
+enum TipoItem {
+  produto
+  servico
+}
+
 enum TipoAnalise {
   curriculo
   produto
@@ -206,6 +211,9 @@ model Profile {
   areaAtuacao     String?
   regiao          String?
   bio             String?
+  bannerUrl       String?
+  /// Marca/empresa que o perfil representa (opcional).
+  representa      String?
   portfolio       Json        @default("[]")
   redesSociais    Json        @default("{}")
   visibilidadePublica Boolean @default(true)
@@ -216,6 +224,7 @@ model Profile {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([tenantId])
+  @@index([visibilidadePublica])
   @@map("profiles")
 }
 
@@ -280,6 +289,7 @@ model Product {
   sellerId    String        @db.Uuid
   nome        String
   descricao   String
+  tipo        TipoItem      @default(produto)
   categoria   String?
   preco       Decimal?      @db.Decimal(12, 2)
   regiaoAtendimento String?

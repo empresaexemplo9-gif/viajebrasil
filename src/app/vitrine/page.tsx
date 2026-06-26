@@ -4,8 +4,18 @@ import { listarVitrine } from '@/lib/server/repos';
 export const metadata = { title: 'Vitrine' };
 export const dynamic = 'force-dynamic';
 
-export default async function VitrinePage() {
-  const itens = await listarVitrine();
+export default async function VitrinePage({
+  searchParams,
+}: {
+  searchParams?: { q?: string; tipo?: string; categoria?: string; regiao?: string };
+}) {
+  const sp = searchParams ?? {};
+  const itens = await listarVitrine({
+    q: sp.q,
+    tipo: sp.tipo,
+    categoria: sp.categoria,
+    regiao: sp.regiao,
+  });
 
   return (
     <div className="container-app py-12">
@@ -14,6 +24,41 @@ export default async function VitrinePage() {
         Produtos e serviços de vendedores e prestadores da plataforma. Itens de planos{' '}
         <strong>Prime</strong> ganham destaque e maior alcance.
       </p>
+
+      {/* Filtros */}
+      <form method="get" className="cartao mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <input
+          name="q"
+          defaultValue={sp.q ?? ''}
+          placeholder="Buscar produto ou serviço…"
+          className="rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-marca-500 lg:col-span-2"
+        />
+        <select name="tipo" defaultValue={sp.tipo ?? ''} className="rounded-lg border border-slate-300 px-3 py-2.5 text-sm">
+          <option value="">Produto e serviço</option>
+          <option value="produto">Só produtos</option>
+          <option value="servico">Só serviços</option>
+        </select>
+        <input
+          name="categoria"
+          defaultValue={sp.categoria ?? ''}
+          placeholder="Categoria"
+          className="rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-marca-500"
+        />
+        <input
+          name="regiao"
+          defaultValue={sp.regiao ?? ''}
+          placeholder="Região"
+          className="rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-marca-500"
+        />
+        <div className="sm:col-span-2 lg:col-span-5">
+          <button className="btn-primario">Filtrar</button>
+          {(sp.q || sp.tipo || sp.categoria || sp.regiao) && (
+            <Link href="/vitrine" className="btn-secundario ml-2">
+              Limpar
+            </Link>
+          )}
+        </div>
+      </form>
 
       {itens.length === 0 ? (
         <div className="cartao mt-8 text-center text-slate-500">

@@ -25,6 +25,10 @@ export default async function PainelPage({
       areaAtuacao: String(formData.get('areaAtuacao') ?? ''),
       regiao: String(formData.get('regiao') ?? ''),
       bio: String(formData.get('bio') ?? ''),
+      avatarUrl: String(formData.get('avatarUrl') ?? '').trim(),
+      bannerUrl: String(formData.get('bannerUrl') ?? '').trim(),
+      representa: String(formData.get('representa') ?? '').trim(),
+      visibilidadePublica: String(formData.get('visibilidadePublica') ?? '') === 'on',
     });
     redirect('/painel?salvo=1');
   }
@@ -89,9 +93,39 @@ export default async function PainelPage({
       </div>
 
       <form action={salvar} className="cartao mt-8 grid gap-4 sm:grid-cols-2">
-        <h2 className="font-bold text-tinta sm:col-span-2">Complete seu perfil</h2>
+        <h2 className="font-bold text-tinta sm:col-span-2">Identidade do perfil</h2>
+
+        {/* Pré-visualização banner + avatar */}
+        <div className="sm:col-span-2">
+          <div className="relative h-32 w-full overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-ink-900 to-ink-700">
+            {u.perfil?.bannerUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={u.perfil.bannerUrl} alt="banner" className="h-full w-full object-cover" />
+            ) : (
+              <span className="absolute inset-0 grid place-items-center text-xs text-white/60">
+                Banner (cole uma URL abaixo)
+              </span>
+            )}
+            <div className="absolute -bottom-6 left-4 h-16 w-16 overflow-hidden rounded-full border-4 border-white bg-marca-100">
+              {u.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={u.avatarUrl} alt="avatar" className="h-full w-full object-cover" />
+              ) : (
+                <span className="grid h-full w-full place-items-center text-lg font-black text-marca-700">
+                  {u.nome.charAt(0)}
+                </span>
+              )}
+            </div>
+          </div>
+          <div className="h-7" />
+        </div>
+
+        <Campo nome="avatarUrl" rotulo="Foto de perfil (URL) — sua ou da marca/empresa" valor={u.avatarUrl} />
+        <Campo nome="bannerUrl" rotulo="Imagem de fundo / banner (URL)" valor={u.perfil?.bannerUrl ?? ''} />
+        <Campo nome="representa" rotulo="Marca/empresa que representa (opcional)" valor={u.perfil?.representa ?? ''} />
         <Campo nome="areaAtuacao" rotulo="Área de atuação" valor={u.perfil?.areaAtuacao ?? ''} />
         <Campo nome="regiao" rotulo="Região" valor={u.perfil?.regiao ?? ''} />
+
         <label className="block sm:col-span-2">
           <span className="mb-1 block text-xs font-semibold text-slate-500">Bio</span>
           <textarea
@@ -101,6 +135,19 @@ export default async function PainelPage({
             className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-marca-500"
           />
         </label>
+
+        <label className="flex items-center gap-2 sm:col-span-2">
+          <input
+            type="checkbox"
+            name="visibilidadePublica"
+            defaultChecked={u.perfil?.visibilidadePublica ?? true}
+            className="h-4 w-4 rounded border-slate-300"
+          />
+          <span className="text-sm text-slate-600">
+            Aparecer na busca pública de perfis (<Link href="/perfil" className="font-semibold text-marca-600">ver diretório</Link>)
+          </span>
+        </label>
+
         <div className="sm:col-span-2">
           <button className="btn-primario">Salvar perfil</button>
         </div>

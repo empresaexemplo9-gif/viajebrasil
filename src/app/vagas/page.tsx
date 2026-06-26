@@ -4,8 +4,18 @@ import { listarVagasPublicas } from '@/lib/server/repos';
 export const metadata = { title: 'Banco de Vagas' };
 export const dynamic = 'force-dynamic';
 
-export default async function VagasPage() {
-  const vagas = await listarVagasPublicas();
+export default async function VagasPage({
+  searchParams,
+}: {
+  searchParams?: { q?: string; area?: string; regiao?: string; contrato?: string };
+}) {
+  const sp = searchParams ?? {};
+  const vagas = await listarVagasPublicas({
+    q: sp.q,
+    area: sp.area,
+    regiao: sp.regiao,
+    tipoContrato: sp.contrato,
+  });
 
   return (
     <div className="container-app py-12">
@@ -15,6 +25,43 @@ export default async function VagasPage() {
         <strong>IA classifica seu currículo</strong> por aderência, experiência, certificações e
         referências.
       </p>
+
+      {/* Filtros */}
+      <form method="get" className="cartao mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <input
+          name="q"
+          defaultValue={sp.q ?? ''}
+          placeholder="Buscar vaga, habilidade…"
+          className="rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-marca-500 lg:col-span-2"
+        />
+        <select name="contrato" defaultValue={sp.contrato ?? ''} className="rounded-lg border border-slate-300 px-3 py-2.5 text-sm">
+          <option value="">Qualquer contrato</option>
+          <option value="CLT">CLT</option>
+          <option value="PJ">PJ</option>
+          <option value="FREELA">Freela</option>
+          <option value="TEMPORARIO">Temporário</option>
+        </select>
+        <input
+          name="area"
+          defaultValue={sp.area ?? ''}
+          placeholder="Área"
+          className="rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-marca-500"
+        />
+        <input
+          name="regiao"
+          defaultValue={sp.regiao ?? ''}
+          placeholder="Região"
+          className="rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-marca-500"
+        />
+        <div className="sm:col-span-2 lg:col-span-5">
+          <button className="btn-primario">Filtrar</button>
+          {(sp.q || sp.area || sp.regiao || sp.contrato) && (
+            <Link href="/vagas" className="btn-secundario ml-2">
+              Limpar
+            </Link>
+          )}
+        </div>
+      </form>
 
       {vagas.length === 0 ? (
         <div className="cartao mt-8 text-center text-slate-500">

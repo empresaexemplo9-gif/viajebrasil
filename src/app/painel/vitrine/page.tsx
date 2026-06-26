@@ -27,6 +27,7 @@ export default async function MinhaVitrinePage({
     await criarProduto(atual.tenantId, atual.userId, {
       nome: String(formData.get('nome') ?? '').trim(),
       descricao: String(formData.get('descricao') ?? '').trim(),
+      tipo: String(formData.get('tipo') ?? 'produto'),
       categoria: String(formData.get('categoria') ?? '').trim(),
       preco: String(formData.get('preco') ?? ''),
       regiao: String(formData.get('regiao') ?? '').trim(),
@@ -114,6 +115,13 @@ export default async function MinhaVitrinePage({
         <form action={publicar} className="cartao mt-8 grid gap-4 sm:grid-cols-2">
           <h2 className="font-bold text-tinta sm:col-span-2">Cadastrar produto ou serviço</h2>
           <Campo nome="nome" rotulo="Nome" />
+          <label className="block">
+            <span className="mb-1 block text-xs font-semibold text-slate-500">Tipo</span>
+            <select name="tipo" className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm">
+              <option value="produto">Produto</option>
+              <option value="servico">Serviço</option>
+            </select>
+          </label>
           <Campo nome="categoria" rotulo="Categoria" />
           <Campo nome="preco" rotulo="Preço (R$) — vazio = sob consulta" obrig={false} />
           <Campo nome="regiao" rotulo="Região de atendimento" />
