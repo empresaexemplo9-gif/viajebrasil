@@ -13,9 +13,61 @@ import LinkedInProvider from 'next-auth/providers/linkedin';
 import { prisma } from './prisma';
 import { conferirSenha } from './password';
 import { registrarAudit } from './audit';
+import { slugUnico } from './tenant';
 
 const MAX_TENTATIVAS = 5;
 const BLOQUEIO_MS = 15 * 60 * 1000;
+
+/**
+ * Onboarding de login social (Google/LinkedIn): encontra o usuário pelo e-mail
+ * ou cria um novo negócio (tenant + super_admin + perfil + assinatura free),
+ * igual ao cadastro por e-mail. Devolve as claims para o token.
+ */
+async function onboardOAuth(
+  email: string,
+  nome: string,
+): Promise<{ id: string; tenantId: string; papel: string; tipoPerfil: string; plano: string } | null> {
+  const e = email.trim().toLowerCase();
+  if (!e) return null;
+  const existente = await prisma.user.findFirst({
+    where: { email: e },
+    include: { tenant: { select: { plano: true } } },
+  });
+  if (existente) {
+    return {
+      id: existente.id,
+      tenantId: existente.tenantId,
+      papel: existente.papel,
+      tipoPerfil: existente.tipoPerfil,
+      plano: existente.tenant.plano,
+    };
+  }
+  const slug = await slugUnico(nome || e.split('@')[0]);
+  const criado = await prisma.$transaction(async (tx) => {
+    const tenant = await tx.tenant.create({ data: { nome: nome || e, slug, plano: 'free', statusAssinatura: 'trial' } });
+    const u = await tx.user.create({
+      data: {
+        tenantId: tenant.id,
+        nome: nome || e,
+        email: e,
+        papel: 'super_admin',
+        status: 'ativo',
+        emailVerificadoEm: new Date(),
+        tipoPerfil: 'pessoa_fisica',
+      },
+    });
+    await tx.profile.create({ data: { tenantId: tenant.id, userId: u.id, tipo: 'empresa_contratante' } });
+    await tx.subscription.create({ data: { tenantId: tenant.id, plano: 'free', status: 'trial' } });
+    return { u, plano: tenant.plano };
+  });
+  return {
+    id: criado.u.id,
+    tenantId: criado.u.tenantId,
+    papel: criado.u.papel,
+    tipoPerfil: criado.u.tipoPerfil,
+    plano: criado.plano,
+  };
+}
 
 export const authOptions: NextAuthOptions = {
   session: { strategy: 'jwt', maxAge: 60 * 60 * 24 * 7 },
@@ -118,19 +170,48 @@ export const authOptions: NextAuthOptions = {
           LinkedInProvider({
             clientId: process.env.LINKEDIN_CLIENT_ID,
             clientSecret: process.env.LINKEDIN_CLIENT_SECRET ?? '',
+            // LinkedIn agora usa "Sign In with LinkedIn using OpenID Connect".
+            client: { token_endpoint_auth_method: 'client_secret_post' },
+            issuer: 'https://www.linkedin.com/oauth',
+            wellKnown: 'https://www.linkedin.com/oauth/.well-known/openid-configuration',
+            authorization: { params: { scope: 'openid profile email' } },
+            profile(perfil) {
+              const p = perfil as unknown as {
+                sub: string;
+                name?: string;
+                email?: string;
+                picture?: string;
+              };
+              return {
+                id: p.sub,
+                name: p.name ?? null,
+                email: p.email ?? null,
+                image: p.picture ?? null,
+              };
+            },
           }),
         ]
       : []),
   ],
   callbacks: {
-    async jwt({ token, user }) {
-      // No primeiro login, copia as claims do usuário para o token.
-      if (user) {
+    async jwt({ token, user, account }) {
+      // Login por e-mail/senha: o `user` já traz as claims (tenantId etc.).
+      if (user && (user as { tenantId?: string }).tenantId) {
         token.userId = (user as { id: string }).id;
         token.tenantId = (user as { tenantId?: string }).tenantId;
         token.papel = (user as { papel?: string }).papel;
         token.tipoPerfil = (user as { tipoPerfil?: string }).tipoPerfil;
         token.plano = (user as { plano?: string }).plano;
+      } else if (account && account.provider !== 'credentials' && token.email && !token.tenantId) {
+        // Login social: encontra/cria o negócio do usuário e popula o token.
+        const db = await onboardOAuth(token.email, token.name ?? '');
+        if (db) {
+          token.userId = db.id;
+          token.tenantId = db.tenantId;
+          token.papel = db.papel;
+          token.tipoPerfil = db.tipoPerfil;
+          token.plano = db.plano;
+        }
       }
       return token;
     },

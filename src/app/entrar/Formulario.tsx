@@ -5,7 +5,11 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { politicaSenha } from '@/lib/password-policy';
 
-export function Formulario() {
+export function Formulario({
+  provedores = { google: false, linkedin: false },
+}: {
+  provedores?: { google: boolean; linkedin: boolean };
+}) {
   const router = useRouter();
   const params = useSearchParams();
   const proximo = params.get('proximo') ?? '/painel';
@@ -81,25 +85,28 @@ export function Formulario() {
           </p>
         )}
 
-        <div className="mt-6 grid gap-2">
-          <button
-            onClick={() => signIn('google', { callbackUrl: proximo })}
-            className="btn-secundario w-full"
-            type="button"
-          >
-            Entrar com Google
-          </button>
-          <button
-            onClick={() => signIn('linkedin', { callbackUrl: proximo })}
-            className="btn-secundario w-full"
-            type="button"
-          >
-            Entrar com LinkedIn
-          </button>
-          <p className="text-center text-xs text-slate-400">
-            (Login social ativa quando as chaves OAuth estiverem configuradas.)
-          </p>
-        </div>
+        {(provedores.google || provedores.linkedin) && (
+          <div className="mt-6 grid gap-2">
+            {provedores.google && (
+              <button
+                onClick={() => signIn('google', { callbackUrl: proximo })}
+                className="btn-secundario w-full"
+                type="button"
+              >
+                Entrar com Google
+              </button>
+            )}
+            {provedores.linkedin && (
+              <button
+                onClick={() => signIn('linkedin', { callbackUrl: proximo })}
+                className="btn-secundario w-full"
+                type="button"
+              >
+                Entrar com LinkedIn
+              </button>
+            )}
+          </div>
+        )}
 
         <form onSubmit={entrar} className="cartao mt-6 space-y-3">
           <h2 className="font-bold text-tinta">Entrar</h2>
