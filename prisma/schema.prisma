@@ -101,6 +101,19 @@ enum TipoItem {
   servico
 }
 
+enum TipoCompromisso {
+  reuniao
+  negociacao
+  apresentacao
+  entrevista
+}
+
+enum StatusParticipacao {
+  convidado
+  aceito
+  recusado
+}
+
 enum TipoAnalise {
   curriculo
   produto
@@ -172,6 +185,8 @@ model User {
   auditLogs    AuditLog[]
   notifications Notification[]
   otpCodes     OtpCode[]
+  reunioesOrganizadas Reuniao[]    @relation("OrganizadorReunioes")
+  participacoes Participante[]
 
   // E-mail único por tenant (mesmo e-mail pode existir em tenants distintos).
   @@unique([tenantId, email])
@@ -421,4 +436,45 @@ model OtpCode {
 
   @@index([userId])
   @@map("otp_codes")
+}
+
+// ───────────────────────── Agenda (compromissos + call) ─────────────────────────
+
+model Reuniao {
+  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizadorId String          @db.Uuid
+  organizadorTenantId String?   @db.Uuid
+  titulo        String
+  tipo          TipoCompromisso @default(reuniao)
+  descricao     String?
+  inicioEm      DateTime
+  duracaoMin    Int             @default(30)
+  /// Nome único da sala de call (Jitsi). Não-adivinhável.
+  sala          String          @unique
+  cancelada     Boolean         @default(false)
+  criadoEm      DateTime        @default(now())
+
+  organizador   User           @relation("OrganizadorReunioes", fields: [organizadorId], references: [id])
+  participantes Participante[]
+
+  @@index([organizadorId])
+  @@map("reunioes")
+}
+
+model Participante {
+  id        String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reuniaoId String             @db.Uuid
+  userId    String?            @db.Uuid
+  email     String
+  status    StatusParticipacao @default(convidado)
+  organizador Boolean          @default(false)
+  criadoEm  DateTime           @default(now())
+
+  reuniao Reuniao @relation(fields: [reuniaoId], references: [id], onDelete: Cascade)
+  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([reuniaoId, email])
+  @@index([userId])
+  @@index([reuniaoId])
+  @@map("participantes")
 }

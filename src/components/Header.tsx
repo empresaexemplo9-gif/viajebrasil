@@ -8,7 +8,7 @@ const navItens = [
   { href: '/vagas', rotulo: 'Vagas' },
   { href: '/vitrine', rotulo: 'Vitrine' },
   { href: '/feed', rotulo: 'Captação' },
-  { href: '/marketing', rotulo: 'Marketing' },
+  { href: '/painel/agenda', rotulo: 'Agenda' },
   { href: '/planos', rotulo: 'Planos' },
 ];
 

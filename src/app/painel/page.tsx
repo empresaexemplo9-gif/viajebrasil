@@ -86,11 +86,13 @@ export default async function PainelPage({
       </div>
 
       {/* Atalhos */}
-      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <Atalho href="/painel/vagas" titulo="Minhas vagas" desc="Publicar e gerir vagas, ver candidatos." />
         <Atalho href="/painel/vitrine" titulo="Minha vitrine" desc="Produtos/serviços com visibilidade por plano." />
+        <Atalho href="/painel/agenda" titulo="Agenda e calls" desc="Reuniões, entrevistas e negociações com sala de call." />
         <Atalho href="/painel/prime" titulo="Ranking por IA" desc="Currículos pontuados e métricas." />
-        <Atalho href="/vagas" titulo="Banco de vagas" desc="Ver o board público da plataforma." />
+        <Atalho href="/perfil" titulo="Buscar perfis" desc="Diretório de empresas, profissionais e candidatos." />
+        <Atalho href="/vitrine" titulo="Vitrine" desc="Marketplace de produtos e serviços." />
       </div>
 
       <form action={salvar} className="cartao mt-8 grid gap-4 sm:grid-cols-2">
