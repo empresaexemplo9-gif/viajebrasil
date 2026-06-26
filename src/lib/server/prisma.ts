@@ -11,9 +11,17 @@ import { PrismaClient, type Prisma } from '@prisma/client';
 
 const globalForPrisma = globalThis as unknown as { __drapPrisma?: PrismaClient };
 
+// Fallback de URL: sem DATABASE_URL, `new PrismaClient()` lançaria exceção já
+// no carregamento do módulo, derrubando TODAS as páginas (inclusive as públicas
+// que nem usam banco). Com uma URL "placeholder", a inicialização nunca quebra;
+// um eventual erro só aparece na hora de consultar o banco (e é tratável).
+const databaseUrl =
+  process.env.DATABASE_URL ?? 'postgresql://placeholder:placeholder@localhost:5432/placeholder';
+
 export const prisma =
   globalForPrisma.__drapPrisma ??
   new PrismaClient({
+    datasources: { db: { url: databaseUrl } },
     log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
   });
 
