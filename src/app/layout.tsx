@@ -16,6 +16,10 @@ export const metadata: Metadata = {
   formatDetection: { telephone: false },
 };
 
+// App autenticado: renderiza por request (sem prerender estático), garantindo
+// que o cabeçalho reflita a sessão e evitando erros de pré-renderização.
+export const dynamic = 'force-dynamic';
+
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
