@@ -19,6 +19,7 @@ process.env.PRISMA_HIDE_UPDATE_MESSAGE = '1';
 // Aceita os vários nomes que a Vercel/Neon pode ter criado (depende do prefixo).
 const urlRuntime =
   process.env.DATABASE_URL ||
+  process.env.DATABASE_PRISMA_URL ||
   process.env.POSTGRES_PRISMA_URL ||
   process.env.POSTGRES_URL ||
   process.env.STORAGE_PRISMA_URL ||
@@ -31,24 +32,27 @@ if (!urlRuntime) {
 // Garante que o `prisma db push` (que lê env DATABASE_URL) tenha o valor.
 process.env.DATABASE_URL = urlRuntime;
 
-// Para o db push, prefira a conexão DIRETA (non-pooling) se existir — o pooler
-// (pgbouncer) pode falhar em operações de DDL. No runtime, o app continua
-// usando DATABASE_URL normalmente.
+// Para o db push, é PRECISO a conexão DIRETA — o pooler (pgbouncer) recusa DDL,
+// e foi por isso que as tabelas não eram criadas. Ordem:
+// 1) variável non-pooling explícita; 2) derivar a direta tirando "-pooler" do
+// host (padrão Neon); 3) por fim, a própria URL.
 const urlDireta =
   process.env.DATABASE_URL_NON_POOLING ||
   process.env.POSTGRES_URL_NON_POOLING ||
   process.env.STORAGE_URL_NON_POOLING ||
   process.env.DATABASE_URL_UNPOOLED ||
-  process.env.DATABASE_URL;
+  urlRuntime.replace('-pooler', '');
 
 try {
-  console.log('[prepare-db] aplicando schema (prisma db push)…');
+  const host = (urlDireta.match(/@([^/:?]+)/) || [])[1] ?? '(desconhecido)';
+  console.log(`[prepare-db] aplicando schema (prisma db push) em ${host}…`);
   execSync('npx prisma db push --skip-generate --accept-data-loss', {
     stdio: 'inherit',
     env: { ...process.env, DATABASE_URL: urlDireta },
   });
+  console.log('[prepare-db] schema aplicado com sucesso (tabelas criadas).');
 } catch (e) {
-  console.warn('[prepare-db] db push falhou (segue o build):', e?.message ?? e);
+  console.error('[prepare-db] ERRO no db push (tabelas NÃO criadas):', e?.message ?? e);
 }
 
 if (process.env.LIMPAR_DEMO === '1') {
