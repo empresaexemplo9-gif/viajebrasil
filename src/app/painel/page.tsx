@@ -101,6 +101,7 @@ export default async function PainelPage({
         <Atalho href="/painel/agenda" titulo="Agenda e calls" desc="Reuniões, entrevistas e negociações com sala de call." />
         <Atalho href="/painel/chat" titulo="Chat" desc="Converse e envie convites de reunião na conversa." />
         <Atalho href="/painel/crm" titulo="CRM" desc="Funil de leads e contatos do seu negócio." />
+        <Atalho href="/painel/grupos" titulo="Grupos" desc="Comunidades por setor e região." />
         <Atalho href="/painel/prime" titulo="Ranking por IA" desc="Currículos pontuados e métricas." />
         <Atalho href="/perfil" titulo="Buscar perfis" desc="Diretório de empresas, profissionais e candidatos." />
         <Atalho href="/vitrine" titulo="Vitrine" desc="Marketplace de produtos e serviços." />

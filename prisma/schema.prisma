@@ -204,6 +204,9 @@ model User {
   conversas     ConversaParticipante[]
   mensagensChat MensagemChat[]
   posts         Post[]
+  gruposCriados   Grupo[]         @relation("GrupoDono")
+  gruposMembro    GrupoMembro[]
+  gruposMensagens GrupoMensagem[]
 
   // E-mail único por tenant (mesmo e-mail pode existir em tenants distintos).
   @@unique([tenantId, email])
@@ -538,6 +541,52 @@ model MensagemChat {
 
   @@index([conversaId])
   @@map("mensagens_chat")
+}
+
+// ───────────────────────── Grupos e comunidades ─────────────────────────
+
+model Grupo {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  donoId    String   @db.Uuid
+  nome      String
+  descricao String?
+  categoria String?
+  criadoEm  DateTime @default(now())
+
+  dono      User            @relation("GrupoDono", fields: [donoId], references: [id], onDelete: Cascade)
+  membros   GrupoMembro[]
+  mensagens GrupoMensagem[]
+
+  @@index([categoria])
+  @@map("grupos")
+}
+
+model GrupoMembro {
+  id       String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  grupoId  String   @db.Uuid
+  userId   String   @db.Uuid
+  criadoEm DateTime @default(now())
+
+  grupo Grupo @relation(fields: [grupoId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([grupoId, userId])
+  @@index([userId])
+  @@map("grupo_membros")
+}
+
+model GrupoMensagem {
+  id       String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  grupoId  String   @db.Uuid
+  autorId  String   @db.Uuid
+  texto    String
+  criadoEm DateTime @default(now())
+
+  grupo Grupo @relation(fields: [grupoId], references: [id], onDelete: Cascade)
+  autor User  @relation(fields: [autorId], references: [id], onDelete: Cascade)
+
+  @@index([grupoId])
+  @@map("grupo_mensagens")
 }
 
 // ───────────────────────── CRM (leads) ─────────────────────────
