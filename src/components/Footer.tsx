@@ -1,10 +1,17 @@
+import Link from 'next/link';
+
 export function Footer() {
   return (
     <footer className="border-t border-slate-200 bg-white">
       <div className="container-app flex flex-col items-center justify-between gap-3 py-8 text-sm text-ink-400 sm:flex-row">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/drap-logo-ink.svg" alt="DRAP Business" className="h-7 w-auto" />
-        <p>Hub digital de negócios e conexões.</p>
+        <div className="flex items-center gap-4">
+          <Link href="/instalar" className="font-semibold text-marca-600 hover:underline">
+            📲 Baixar o app
+          </Link>
+          <span>Hub digital de negócios e conexões.</span>
+        </div>
         <p>© {new Date().getFullYear()} DRAP Business</p>
       </div>
     </footer>

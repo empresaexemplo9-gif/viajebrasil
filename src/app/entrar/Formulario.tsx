@@ -151,12 +151,14 @@ export function Formulario() {
             <button disabled={carregando} className="btn-primario w-full">
               {carregando ? 'Entrando…' : 'Entrar'}
             </button>
-            <p className="text-center text-xs text-slate-400">
-              Não tem conta?{' '}
+            <div className="flex items-center justify-between text-xs">
+              <a href="/recuperar-senha" className="font-semibold text-slate-500 hover:text-marca-600">
+                Esqueci a senha
+              </a>
               <button type="button" onClick={() => trocarAba('criar')} className="font-semibold text-marca-600">
                 Criar conta
               </button>
-            </p>
+            </div>
           </form>
         )}
 
