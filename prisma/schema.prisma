@@ -119,6 +119,14 @@ enum TipoMensagem {
   convite
 }
 
+enum EtapaLead {
+  novo
+  contato
+  proposta
+  ganho
+  perdido
+}
+
 enum TipoAnalise {
   curriculo
   produto
@@ -156,6 +164,7 @@ model Tenant {
   notifications Notification[]
   aiAnalyses    AiAnalysis[]
   convites      Convite[]
+  leads         Lead[]
 
   @@index([slug])
   @@map("tenants")
@@ -529,6 +538,29 @@ model MensagemChat {
 
   @@index([conversaId])
   @@map("mensagens_chat")
+}
+
+// ───────────────────────── CRM (leads) ─────────────────────────
+
+model Lead {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId     String    @db.Uuid
+  responsavelId String?  @db.Uuid
+  nome         String
+  email        String?
+  telefone     String?
+  origem       String?
+  valor        Decimal?  @db.Decimal(12, 2)
+  etapa        EtapaLead @default(novo)
+  notas        String?
+  criadoEm     DateTime  @default(now())
+  atualizadoEm DateTime  @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([tenantId, etapa])
+  @@map("leads")
 }
 
 // ───────────────────────── Feed (publicações) ─────────────────────────
