@@ -18,8 +18,8 @@ export default function AppleIcon() {
         }}
       >
         {/* Símbolo "D" da marca DRAP, em tinta */}
-        <svg width="120" height="120" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-          <g transform="translate(1.3,15.6)">
+        <svg width="166" height="166" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <g transform="translate(50,50) scale(1.62) translate(-48.76,-34.44)">
             <path
               d="M 65.409444,6.6238851 39.434802,62.874198 h 22.174874 c 8.607065,0 15.537036,-9.612729 15.537036,-21.552689 V 27.53217 c 0,-10.120369 -4.978535,-18.5684503 -11.737268,-20.9082849 z"
               fill="#0B1018"
