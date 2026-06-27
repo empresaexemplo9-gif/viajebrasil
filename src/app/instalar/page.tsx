@@ -6,9 +6,9 @@ export default function InstalarPage() {
   return (
     <div className="container-app py-12">
       <div className="mx-auto max-w-lg text-center">
-        <span className="grid mx-auto h-16 w-16 place-items-center rounded-2xl bg-ink-950">
+        <span className="grid mx-auto h-16 w-16 place-items-center overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/icon.svg" alt="DRAP" className="h-12 w-12" />
+          <img src="/icon.svg" alt="DRAP" className="h-full w-full" />
         </span>
         <h1 className="mt-4 text-3xl font-black tracking-tight text-tinta">Baixar o app DRAP</h1>
         <p className="mt-2 text-slate-600">
