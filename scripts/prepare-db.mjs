@@ -43,10 +43,14 @@ const urlDireta =
   process.env.DATABASE_URL_UNPOOLED ||
   urlRuntime.replace('-pooler', '');
 
+// RESET_DB=1 → recria o schema do zero (--force-reset). Use só num banco sem
+// dados reais (corrige schema "pela metade"); depois remova a variável.
+const flags = process.env.RESET_DB === '1' ? '--force-reset' : '';
+
 try {
   const host = (urlDireta.match(/@([^/:?]+)/) || [])[1] ?? '(desconhecido)';
-  console.log(`[prepare-db] aplicando schema (prisma db push) em ${host}…`);
-  execSync('npx prisma db push --skip-generate --accept-data-loss', {
+  console.log(`[prepare-db] aplicando schema (prisma db push ${flags}) em ${host}…`);
+  execSync(`npx prisma db push --skip-generate --accept-data-loss ${flags}`.trim(), {
     stdio: 'inherit',
     env: { ...process.env, DATABASE_URL: urlDireta },
   });
