@@ -66,11 +66,19 @@ export default async function CrmPage({ searchParams }: { searchParams?: { ok?: 
 
   return (
     <div className="container-app py-12">
-      <h1 className="text-3xl font-black tracking-tight text-tinta">CRM — captação e funil</h1>
-      <p className="mt-2 max-w-2xl text-slate-600">
-        Capte clientes para serviços, produtos, B2B, orçamentos, agendamentos e recrutamento — e
-        mova cada lead pelo funil até fechar. Tudo do seu negócio, isolado.
-      </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-3xl font-black tracking-tight text-tinta">CRM — captação e funil</h1>
+          <p className="mt-2 max-w-2xl text-slate-600">
+            Capte clientes para serviços, produtos, B2B, orçamentos, agendamentos e recrutamento — e
+            mova cada lead pelo funil até fechar. Ao marcar <strong>Ganho</strong>, o lead vira{' '}
+            <Link href="/painel/clientes" className="font-semibold text-marca-600">cliente</Link> automaticamente.
+          </p>
+        </div>
+        <Link href="/painel/clientes" className="btn-secundario !py-2">
+          Ver clientes
+        </Link>
+      </div>
 
       {/* Link público de captação */}
       {slug && (

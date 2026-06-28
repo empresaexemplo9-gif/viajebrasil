@@ -3,7 +3,6 @@
  * clientes (link público, perfil e vitrine) com notificação por e-mail.
  */
 import { prisma, withTenant } from './prisma';
-import { enviarEmail } from './email';
 
 export type Etapa = 'novo' | 'contato' | 'proposta' | 'ganho' | 'perdido';
 
@@ -126,6 +125,8 @@ export async function moverLead(tenantId: string, id: string, etapa: Etapa): Pro
   await withTenant(tenantId, (db) =>
     db.lead.updateMany({ where: { id, tenantId }, data: { etapa: etapa as never } }),
   );
+  // Ao fechar o negócio, registra automaticamente como cliente.
+  if (etapa === 'ganho') await registrarClienteDeLead(tenantId, id);
 }
 
 export async function excluirLead(tenantId: string, id: string): Promise<void> {
@@ -143,36 +144,14 @@ export interface DadosCaptura {
   valor?: string;
 }
 
-/** Quem é dono do funil de um tenant (recebe a notificação de lead novo). */
-async function donoDoTenant(tenantId: string): Promise<{ id: string; nome: string; email: string } | null> {
+/** Quem é dono do funil de um tenant (responsável pelos leads captados). */
+async function donoDoTenant(tenantId: string): Promise<{ id: string } | null> {
   const u = await prisma.user.findFirst({
     where: { tenantId },
     orderBy: { criadoEm: 'asc' },
-    select: { id: true, nome: true, email: true },
+    select: { id: true },
   });
   return u ?? null;
-}
-
-async function notificarLeadNovo(
-  destino: { nome: string; email: string },
-  lead: DadosCaptura,
-  origem: string,
-): Promise<void> {
-  await enviarEmail({
-    para: destino.email,
-    assunto: `Novo lead (${rotuloTipo(lead.tipo)}) — ${lead.nome}`,
-    html: `
-      <h2>Você recebeu um novo lead 🎉</h2>
-      <p><strong>${lead.nome}</strong> demonstrou interesse via <strong>${origem}</strong>.</p>
-      <ul>
-        <li><strong>Tipo:</strong> ${rotuloTipo(lead.tipo)}</li>
-        ${lead.email ? `<li><strong>E-mail:</strong> ${lead.email}</li>` : ''}
-        ${lead.telefone ? `<li><strong>Telefone:</strong> ${lead.telefone}</li>` : ''}
-        ${lead.descricao ? `<li><strong>Mensagem:</strong> ${lead.descricao}</li>` : ''}
-      </ul>
-      <p>Abra o CRM para responder e mover pelo funil.</p>
-    `,
-  });
 }
 
 /** Dados públicos de um destino de captação (link por slug). */
@@ -218,9 +197,69 @@ async function registrarCaptura(tenantId: string, dados: DadosCaptura, origem: s
     valor: dados.valor ?? '',
     notas: '',
   });
-  if (dono?.email) {
-    await notificarLeadNovo(dono, dados, origem).catch(() => {});
-  }
+}
+
+// ───────────────────────── Clientes (negócios fechados) ─────────────────────────
+
+export interface ClienteView {
+  id: string;
+  nome: string;
+  email: string;
+  telefone: string;
+  origem: string;
+  tipo: TipoLead;
+  tipoRotulo: string;
+  descricao: string;
+  valor: string;
+  desde: string;
+}
+
+/** Ao fechar um lead (Ganho), registra-o como cliente — sem duplicar. */
+export async function registrarClienteDeLead(tenantId: string, leadId: string): Promise<void> {
+  await withTenant(tenantId, async (db) => {
+    const jaExiste = await db.cliente.findFirst({ where: { tenantId, leadId } });
+    if (jaExiste) return;
+    const lead = await db.lead.findFirst({ where: { id: leadId, tenantId } });
+    if (!lead) return;
+    await db.cliente.create({
+      data: {
+        tenantId,
+        leadId,
+        nome: lead.nome,
+        email: lead.email,
+        telefone: lead.telefone,
+        origem: lead.origem,
+        tipo: lead.tipo as never,
+        descricao: lead.descricao,
+        valor: lead.valor,
+      },
+    });
+  });
+}
+
+export async function listarClientes(tenantId: string): Promise<ClienteView[]> {
+  return withTenant(tenantId, async (db) => {
+    const cs = await db.cliente.findMany({ where: { tenantId }, orderBy: { criadoEm: 'desc' }, take: 500 });
+    return cs.map((c) => {
+      const tipo = normalizarTipo(c.tipo);
+      return {
+        id: c.id,
+        nome: c.nome,
+        email: c.email ?? '',
+        telefone: c.telefone ?? '',
+        origem: c.origem ?? '',
+        tipo,
+        tipoRotulo: rotuloTipo(tipo),
+        descricao: c.descricao ?? '',
+        valor: fmtValor(c.valor),
+        desde: c.criadoEm.toLocaleDateString('pt-BR'),
+      };
+    });
+  });
+}
+
+export async function excluirCliente(tenantId: string, id: string): Promise<void> {
+  await withTenant(tenantId, (db) => db.cliente.deleteMany({ where: { id, tenantId } }));
 }
 
 /** Slug do tenant — para montar o link de captação no painel. */
