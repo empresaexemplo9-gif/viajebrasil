@@ -171,7 +171,7 @@ export function PostMenu({
                 }}
                 className="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left text-sm text-slate-700 hover:bg-slate-100"
               >
-                <Icon name="link" size={17} className="text-slate-400" />
+                <Icon name="link" size={17} className="text-marca-600" />
                 Copiar link
               </button>
               <button type="button" onClick={() => setAba('menu')} className="mt-1 text-xs text-slate-400 hover:underline">
@@ -232,7 +232,7 @@ function Item({
         danger ? 'text-rose-600' : 'text-slate-700'
       }`}
     >
-      <Icon name={icone} size={17} className={danger ? '' : 'text-slate-400'} />
+      <Icon name={icone} size={17} className={danger ? '' : 'text-marca-600'} />
       {children}
     </button>
   );
@@ -246,7 +246,7 @@ function Externo({ rotulo, href }: { rotulo: string; href: string }) {
       rel="noopener noreferrer"
       className="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left text-sm text-slate-700 hover:bg-slate-100"
     >
-      <Icon name="external" size={17} className="text-slate-400" />
+      <Icon name="external" size={17} className="text-marca-600" />
       {rotulo}
     </a>
   );

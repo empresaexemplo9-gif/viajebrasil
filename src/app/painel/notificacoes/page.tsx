@@ -53,7 +53,7 @@ export default async function NotificacoesPage() {
                 n.lido ? 'border-slate-200 bg-white' : 'border-marca-200 bg-marca-50'
               }`}
             >
-              <Icon name={ICONE[n.tipo] ?? 'bell'} size={18} className="mt-0.5 text-slate-400" />
+              <Icon name={ICONE[n.tipo] ?? 'bell'} size={18} className="mt-0.5 text-marca-600" />
               <div className="min-w-0 flex-1">
                 <p className="text-sm text-slate-700">{n.conteudo}</p>
                 <p className="mt-0.5 text-xs text-slate-400">{quando(n.criadoEm)}</p>

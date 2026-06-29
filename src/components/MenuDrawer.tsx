@@ -167,7 +167,7 @@ function ItemLink({ item, onNavegar }: { item: ItemMenu; onNavegar: () => void }
       onClick={onNavegar}
       className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-marca-700"
     >
-      <Icon name={item.icone} className="shrink-0 text-slate-400" size={19} />
+      <Icon name={item.icone} className="shrink-0 text-marca-600" size={19} />
       {item.rotulo}
     </Link>
   );

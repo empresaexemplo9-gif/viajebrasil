@@ -60,7 +60,7 @@ export async function Header() {
             <Link
               href="/painel/notificacoes"
               aria-label="Notificações"
-              className="relative rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-marca-700"
+              className="relative rounded-lg p-2 text-marca-600 hover:bg-marca-50 hover:text-marca-700"
             >
               <Icon name="bell" size={20} />
               {naoLidas > 0 && (
