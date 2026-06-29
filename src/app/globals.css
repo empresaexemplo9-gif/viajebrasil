@@ -8,8 +8,9 @@
 
 body {
   @apply text-ink-900 antialiased;
-  /* Off-white em degradê até branco pérola (tom quente, estilo pintura pérola). */
-  background: linear-gradient(180deg, #fcfbf8 0%, #f3efe6 55%, #ece7db 100%);
+  /* Off-white quente em degradê até pérola. Brilho reduzido de propósito
+     (sem branco puro) — mais confortável para fotossensibilidade/glare. */
+  background: linear-gradient(180deg, #f5f1e7 0%, #ece6d9 55%, #e3ddce 100%);
   background-attachment: fixed;
   min-height: 100vh;
 }
@@ -29,16 +30,29 @@ body {
   .btn-secundario {
     @apply inline-flex items-center justify-center gap-2 rounded-lg border border-ink-200 bg-[#fbfaf6] px-5 py-3 text-sm font-semibold text-ink-700 transition hover:border-ink-400 hover:text-ink-900;
   }
-  /* Superfície pérola: off-white com leve degradê (substitui o branco puro). */
+  /* Superfície pérola: off-white com leve degradê (brilho reduzido). */
   .cartao {
-    @apply rounded-2xl border border-ink-100 bg-gradient-to-b from-[#fdfcf9] to-[#f1ece1] p-5 shadow-sm transition hover:shadow-md;
+    @apply rounded-2xl border border-ink-100 bg-gradient-to-b from-[#f7f3ea] to-[#ece6da] p-5 shadow-sm transition hover:shadow-md;
   }
   /* Superfície pérola reutilizável para blocos que usavam bg-white. */
   .superficie {
-    @apply bg-gradient-to-b from-[#fdfcf9] to-[#f1ece1];
+    @apply bg-gradient-to-b from-[#f7f3ea] to-[#ece6da];
   }
   .selo {
     @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold;
+  }
+}
+
+/* Acessibilidade: respeita "reduzir movimento" — corta animações/transições
+   e rolagem suave, reduzindo gatilhos de fotossensibilidade. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
