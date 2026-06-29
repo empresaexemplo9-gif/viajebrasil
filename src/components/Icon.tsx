@@ -71,17 +71,20 @@ export function Icon({
   name,
   className = '',
   size = 20,
+  duo = false,
 }: {
   name: NomeIcone;
   className?: string;
   size?: number;
+  /** Duotone: preenche o interior de navy mantendo o contorno (cor do texto). */
+  duo?: boolean;
 }) {
   return (
     <svg
       width={size}
       height={size}
       viewBox="0 0 24 24"
-      fill="none"
+      fill={duo ? '#141B2B' : 'none'}
       stroke="currentColor"
       strokeWidth={1.6}
       strokeLinecap="round"
