@@ -3,45 +3,46 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { signOut } from 'next-auth/react';
+import { Icon, type NomeIcone } from './Icon';
 
-type ItemMenu = { href: string; rotulo: string; icone: string };
+type ItemMenu = { href: string; rotulo: string; icone: NomeIcone };
 
 const PRINCIPAL: ItemMenu[] = [
-  { href: '/feed', rotulo: 'Feed', icone: '📰' },
-  { href: '/perfil', rotulo: 'Perfis', icone: '👥' },
-  { href: '/vagas', rotulo: 'Vagas', icone: '💼' },
-  { href: '/vitrine', rotulo: 'Vitrine', icone: '🛍️' },
-  { href: '/ranking', rotulo: 'Ranking', icone: '🏆' },
-  { href: '/planos', rotulo: 'Planos', icone: '⭐' },
+  { href: '/feed', rotulo: 'Feed', icone: 'feed' },
+  { href: '/perfil', rotulo: 'Perfis', icone: 'users' },
+  { href: '/vagas', rotulo: 'Vagas', icone: 'briefcase' },
+  { href: '/vitrine', rotulo: 'Vitrine', icone: 'store' },
+  { href: '/ranking', rotulo: 'Ranking', icone: 'trophy' },
+  { href: '/planos', rotulo: 'Planos', icone: 'star' },
 ];
 
 const CONTA: ItemMenu[] = [
-  { href: '/painel', rotulo: 'Meu painel', icone: '🏠' },
-  { href: '/painel/notificacoes', rotulo: 'Notificações', icone: '🔔' },
-  { href: '/painel/chat', rotulo: 'Chat', icone: '💬' },
-  { href: '/painel/agenda', rotulo: 'Agenda e calls', icone: '📅' },
-  { href: '/painel/grupos', rotulo: 'Grupos', icone: '👨‍👩‍👧' },
-  { href: '/painel/crm', rotulo: 'CRM', icone: '📈' },
-  { href: '/painel/clientes', rotulo: 'Clientes', icone: '🤝' },
-  { href: '/painel/vagas', rotulo: 'Minhas vagas', icone: '📋' },
-  { href: '/painel/vitrine', rotulo: 'Minha vitrine', icone: '🏪' },
-  { href: '/painel/propostas', rotulo: 'Propostas', icone: '📄' },
-  { href: '/painel/prime', rotulo: 'Prime (IA)', icone: '🤖' },
+  { href: '/painel', rotulo: 'Meu painel', icone: 'home' },
+  { href: '/painel/notificacoes', rotulo: 'Notificações', icone: 'bell' },
+  { href: '/painel/chat', rotulo: 'Chat', icone: 'message' },
+  { href: '/painel/agenda', rotulo: 'Agenda e calls', icone: 'calendar' },
+  { href: '/painel/grupos', rotulo: 'Grupos', icone: 'users' },
+  { href: '/painel/crm', rotulo: 'CRM', icone: 'chart' },
+  { href: '/painel/clientes', rotulo: 'Clientes', icone: 'users' },
+  { href: '/painel/vagas', rotulo: 'Minhas vagas', icone: 'briefcase' },
+  { href: '/painel/vitrine', rotulo: 'Minha vitrine', icone: 'store' },
+  { href: '/painel/propostas', rotulo: 'Propostas', icone: 'doc' },
+  { href: '/painel/prime', rotulo: 'Prime (IA)', icone: 'bot' },
 ];
 
 // Configurações do acesso cliente
 const CONFIG: ItemMenu[] = [
-  { href: '/painel', rotulo: 'Editar meu perfil', icone: '⚙️' },
-  { href: '/planos', rotulo: 'Planos e assinatura', icone: '💳' },
-  { href: '/instalar', rotulo: 'Instalar o app', icone: '📱' },
-  { href: '/recuperar-senha', rotulo: 'Alterar/recuperar senha', icone: '🔑' },
+  { href: '/painel', rotulo: 'Editar meu perfil', icone: 'gear' },
+  { href: '/planos', rotulo: 'Planos e assinatura', icone: 'card' },
+  { href: '/instalar', rotulo: 'Instalar o app', icone: 'download' },
+  { href: '/recuperar-senha', rotulo: 'Alterar/recuperar senha', icone: 'key' },
 ];
 
 // Ferramentas de edição do superadministrador
 const ADMIN_ITENS: ItemMenu[] = [
-  { href: '/admin', rotulo: 'Painel do admin', icone: '🛠️' },
-  { href: '/admin#denuncias', rotulo: 'Moderação / Denúncias', icone: '🚩' },
-  { href: '/admin/planos', rotulo: 'Editar preços dos planos', icone: '💲' },
+  { href: '/admin', rotulo: 'Painel do admin', icone: 'shield' },
+  { href: '/admin#denuncias', rotulo: 'Moderação / Denúncias', icone: 'flag' },
+  { href: '/admin/planos', rotulo: 'Editar preços dos planos', icone: 'tag' },
 ];
 
 /**
@@ -95,7 +96,7 @@ export function MenuDrawer({
                 aria-label="Fechar"
                 className="grid h-8 w-8 place-items-center rounded-lg text-slate-400 hover:bg-slate-100"
               >
-                ✕
+                <Icon name="x" size={18} />
               </button>
             </div>
 
@@ -118,7 +119,7 @@ export function MenuDrawer({
 
               <div className="my-2 border-t border-slate-100" />
               <ItemLink
-                item={{ href: '/diretrizes', rotulo: 'Diretrizes da comunidade', icone: '📜' }}
+                item={{ href: '/diretrizes', rotulo: 'Diretrizes da comunidade', icone: 'doc' }}
                 onNavegar={fechar}
               />
             </nav>
@@ -164,9 +165,9 @@ function ItemLink({ item, onNavegar }: { item: ItemMenu; onNavegar: () => void }
     <Link
       href={item.href}
       onClick={onNavegar}
-      className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-marca-700"
+      className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-marca-700"
     >
-      <span className="text-base">{item.icone}</span>
+      <Icon name={item.icone} className="shrink-0 text-slate-400" size={19} />
       {item.rotulo}
     </Link>
   );

@@ -6,6 +6,7 @@ import { ehAdminPlataforma } from '@/lib/server/admin';
 import { obterPlano } from '@/lib/planos';
 import { UploadImagem } from '@/components/UploadImagem';
 import { CabecalhoPerfil } from '@/components/CabecalhoPerfil';
+import { Icon } from '@/components/Icon';
 
 export const metadata = { title: 'Meu painel' };
 
@@ -58,7 +59,7 @@ export default async function PainelPage({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-3xl font-black tracking-tight text-tinta">
-            Olá, {u.nome.split(' ')[0]} 👋
+            Olá, {u.nome.split(' ')[0]}
           </h1>
           <p className="text-slate-500">
             {u.email} · papel <strong className="capitalize">{u.papel.replace('_', ' ')}</strong>
@@ -72,7 +73,10 @@ export default async function PainelPage({
 
       {admin && (
         <Link href="/admin" className="mt-6 flex items-center justify-between rounded-xl border border-ink-900 bg-ink-950 px-4 py-3 text-white">
-          <span className="text-sm font-bold">🛠️ Admin da plataforma — edições e reparos</span>
+          <span className="flex items-center gap-2 text-sm font-bold">
+            <Icon name="shield" size={18} className="text-marca-300" />
+            Admin da plataforma — edições e reparos
+          </span>
           <span className="text-sm font-semibold text-marca-300">Abrir →</span>
         </Link>
       )}

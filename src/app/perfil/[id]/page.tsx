@@ -14,6 +14,7 @@ import {
 } from '@/lib/server/admin';
 import { PostCard } from '@/app/feed/PostCard';
 import { ConfirmarSubmit } from '@/components/ConfirmarSubmit';
+import { Icon } from '@/components/Icon';
 
 export const dynamic = 'force-dynamic';
 
@@ -169,8 +170,9 @@ export default async function PerfilPublicoPage({
       {/* Controles do superadmin: bloquear / excluir qualquer perfil */}
       {souAdmin && !souEu && (
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ink-900 bg-ink-950 px-4 py-3 text-white">
-          <span className="text-sm font-bold">
-            🛠️ Moderação · status do perfil:{' '}
+          <span className="flex items-center gap-2 text-sm font-bold">
+            <Icon name="shield" size={18} className="text-marca-300" />
+            Moderação · status do perfil:{' '}
             <span className={statusPerfil === 'suspenso' ? 'text-rose-300' : 'text-emerald-300'}>
               {statusPerfil ?? 'desconhecido'}
             </span>

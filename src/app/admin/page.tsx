@@ -129,7 +129,7 @@ export default async function AdminPlataformaPage({
         )}
       </div>
       {denuncias.length === 0 ? (
-        <p className="mt-3 text-sm text-slate-500">Nenhuma denúncia pendente. 🎉</p>
+        <p className="mt-3 text-sm text-slate-500">Nenhuma denúncia pendente.</p>
       ) : (
         <div className="mt-3 grid gap-3">
           {denuncias.map((d) => (
@@ -215,7 +215,7 @@ export default async function AdminPlataformaPage({
             mensagem="Excluir TODOS os perfis que não são superadmin (e todos os dados deles)? Esta ação é irreversível."
             className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-rose-500"
           >
-            🧹 Excluir todos os perfis (exceto superadmins)
+            Excluir todos os perfis (exceto superadmins)
           </ConfirmarSubmit>
         </form>
       </div>

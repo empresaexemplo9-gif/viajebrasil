@@ -8,6 +8,7 @@ import {
   acaoDenunciarPost,
   acaoCompartilharChat,
 } from './acoes';
+import { Icon, type NomeIcone } from '@/components/Icon';
 
 type Aba = 'menu' | 'editar' | 'chat' | 'externo' | 'denunciar';
 
@@ -79,9 +80,9 @@ export function PostMenu({
         type="button"
         aria-label="Ferramentas da publicação"
         onClick={() => (aberto ? fechar() : setAberto(true))}
-        className="rounded-full px-2 py-1 text-lg leading-none text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+        className="grid h-8 w-8 place-items-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-700"
       >
-        ⋯
+        <Icon name="more" size={18} />
       </button>
 
       {aberto && (
@@ -89,23 +90,24 @@ export function PostMenu({
           {aba === 'menu' && (
             <div className="flex flex-col">
               {souDono && (
-                <Item onClick={() => setAba('editar')}>✏️ Editar</Item>
+                <Item onClick={() => setAba('editar')} icone="edit">Editar</Item>
               )}
               {(souDono || souAdmin) && (
                 <Item
                   danger
+                  icone="trash"
                   onClick={() => {
                     if (confirm('Excluir esta publicação? Esta ação não pode ser desfeita.')) {
                       rodar(() => acaoExcluirPost(postId));
                     }
                   }}
                 >
-                  🗑️ Excluir{souAdmin && !souDono ? ' (admin)' : ''}
+                  Excluir{souAdmin && !souDono ? ' (admin)' : ''}
                 </Item>
               )}
-              {logado && <Item onClick={() => setAba('chat')}>💬 Enviar no chat</Item>}
-              <Item onClick={() => setAba('externo')}>🔗 Compartilhar</Item>
-              {logado && <Item onClick={() => setAba('denunciar')}>🚩 Denunciar</Item>}
+              {logado && <Item onClick={() => setAba('chat')} icone="send">Enviar no chat</Item>}
+              <Item onClick={() => setAba('externo')} icone="share">Compartilhar</Item>
+              {logado && <Item onClick={() => setAba('denunciar')} icone="flag">Denunciar</Item>}
             </div>
           )}
 
@@ -167,9 +169,10 @@ export function PostMenu({
                   navigator.clipboard?.writeText(linkPublico);
                   setAviso('Link copiado!');
                 }}
-                className="w-full rounded-lg px-2 py-1.5 text-left text-sm text-slate-700 hover:bg-slate-100"
+                className="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left text-sm text-slate-700 hover:bg-slate-100"
               >
-                📋 Copiar link
+                <Icon name="link" size={17} className="text-slate-400" />
+                Copiar link
               </button>
               <button type="button" onClick={() => setAba('menu')} className="mt-1 text-xs text-slate-400 hover:underline">
                 ← Voltar
@@ -214,19 +217,22 @@ function Item({
   children,
   onClick,
   danger,
+  icone,
 }: {
   children: React.ReactNode;
   onClick: () => void;
   danger?: boolean;
+  icone: NomeIcone;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`w-full rounded-lg px-2 py-1.5 text-left text-sm hover:bg-slate-100 ${
+      className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left text-sm hover:bg-slate-100 ${
         danger ? 'text-rose-600' : 'text-slate-700'
       }`}
     >
+      <Icon name={icone} size={17} className={danger ? '' : 'text-slate-400'} />
       {children}
     </button>
   );
@@ -238,9 +244,10 @@ function Externo({ rotulo, href }: { rotulo: string; href: string }) {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="block w-full rounded-lg px-2 py-1.5 text-left text-sm text-slate-700 hover:bg-slate-100"
+      className="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left text-sm text-slate-700 hover:bg-slate-100"
     >
-      ↗ {rotulo}
+      <Icon name="external" size={17} className="text-slate-400" />
+      {rotulo}
     </a>
   );
 }

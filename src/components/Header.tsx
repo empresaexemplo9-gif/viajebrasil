@@ -5,6 +5,7 @@ import { contarNaoLidas } from '@/lib/server/notificacoes';
 import { ehAdminPlataforma } from '@/lib/server/admin';
 import { SairBotao } from './SairBotao';
 import { MenuDrawer } from './MenuDrawer';
+import { Icon } from './Icon';
 
 const navItens = [
   { href: '/feed', rotulo: 'Feed' },
@@ -59,9 +60,9 @@ export async function Header() {
             <Link
               href="/painel/notificacoes"
               aria-label="Notificações"
-              className="relative rounded-lg px-2 py-2 text-lg leading-none hover:bg-slate-100"
+              className="relative rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-marca-700"
             >
-              🔔
+              <Icon name="bell" size={20} />
               {naoLidas > 0 && (
                 <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-rose-600 px-1 text-[10px] font-bold text-white">
                   {naoLidas > 9 ? '9+' : naoLidas}

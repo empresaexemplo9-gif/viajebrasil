@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { obterContexto } from '@/lib/server/session';
 import { minhasNotificacoes, marcarTodasLidas } from '@/lib/server/notificacoes';
+import { Icon, type NomeIcone } from '@/components/Icon';
 
 export const metadata = { title: 'Notificações' };
 export const dynamic = 'force-dynamic';
@@ -17,9 +18,9 @@ function quando(iso: string): string {
   return d.toLocaleDateString('pt-BR');
 }
 
-const ICONE: Record<string, string> = {
-  chat: '💬',
-  compartilhamento: '📣',
+const ICONE: Record<string, NomeIcone> = {
+  chat: 'message',
+  compartilhamento: 'megaphone',
 };
 
 export default async function NotificacoesPage() {
@@ -52,7 +53,7 @@ export default async function NotificacoesPage() {
                 n.lido ? 'border-slate-200 bg-white' : 'border-marca-200 bg-marca-50'
               }`}
             >
-              <span className="text-lg">{ICONE[n.tipo] ?? '🔔'}</span>
+              <Icon name={ICONE[n.tipo] ?? 'bell'} size={18} className="mt-0.5 text-slate-400" />
               <div className="min-w-0 flex-1">
                 <p className="text-sm text-slate-700">{n.conteudo}</p>
                 <p className="mt-0.5 text-xs text-slate-400">{quando(n.criadoEm)}</p>
