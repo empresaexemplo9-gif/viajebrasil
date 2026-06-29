@@ -695,9 +695,26 @@ model Post {
   imagemUrl String?
   criadoEm  DateTime @default(now())
 
-  autor User @relation(fields: [autorId], references: [id], onDelete: Cascade)
+  autor     User       @relation(fields: [autorId], references: [id], onDelete: Cascade)
+  denuncias Denuncia[]
 
   @@index([autorId])
   @@index([criadoEm])
   @@map("posts")
+}
+
+/// Denúncias de publicações — moderação por revisão do superadmin.
+model Denuncia {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  postId        String   @db.Uuid
+  denuncianteId String?  @db.Uuid
+  motivo        String
+  resolvida     Boolean  @default(false)
+  criadoEm      DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([resolvida])
+  @@index([postId])
+  @@map("denuncias")
 }

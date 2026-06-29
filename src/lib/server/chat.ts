@@ -4,6 +4,7 @@
  * da conversa entram como convidados do compromisso.
  */
 import { prisma } from './prisma';
+import { criarNotificacao } from './notificacoes';
 
 export async function participaDaConversa(conversaId: string, userId: string): Promise<boolean> {
   const c = await prisma.conversaParticipante.findFirst({ where: { conversaId, userId } });
@@ -127,7 +128,31 @@ export async function enviarMensagem(
     prisma.mensagemChat.create({ data: { conversaId, autorId: userId, texto: t.slice(0, 2000) } }),
     prisma.conversa.update({ where: { id: conversaId }, data: { ultimaMsgEm: new Date() } }),
   ]);
+  await notificarOutrosParticipantes(conversaId, userId);
   return true;
+}
+
+/** Notifica os demais participantes da conversa sobre uma nova mensagem. */
+async function notificarOutrosParticipantes(conversaId: string, autorId: string): Promise<void> {
+  try {
+    const autor = await prisma.user.findUnique({ where: { id: autorId }, select: { nome: true } });
+    const cps = await prisma.conversaParticipante.findMany({
+      where: { conversaId, userId: { not: autorId } },
+      include: { user: { select: { id: true, tenantId: true } } },
+    });
+    await Promise.all(
+      cps.map((cp) =>
+        criarNotificacao(
+          cp.user.tenantId,
+          cp.user.id,
+          'chat',
+          `Nova mensagem de ${autor?.nome ?? 'alguém'} no chat.`,
+        ),
+      ),
+    );
+  } catch (e) {
+    console.error('notificarOutrosParticipantes falhou:', (e as Error).message);
+  }
 }
 
 /** Envia um convite de reunião na conversa e adiciona todos como convidados. */

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/server/auth';
+import { contarNaoLidas } from '@/lib/server/notificacoes';
 import { SairBotao } from './SairBotao';
 
 const navItens = [
@@ -16,13 +17,15 @@ const navItens = [
 export async function Header() {
   // Tolerante a má configuração: se a sessão falhar (ex.: sem NEXTAUTH_SECRET),
   // renderiza como deslogado em vez de quebrar todas as páginas.
-  let usuario: { name?: string | null } | null = null;
+  let usuario: { name?: string | null; id?: string } | null = null;
   try {
     const session = await getServerSession(authOptions);
     usuario = session?.user ?? null;
   } catch {
     usuario = null;
   }
+
+  const naoLidas = usuario?.id ? await contarNaoLidas(usuario.id) : 0;
 
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur">
@@ -46,6 +49,18 @@ export async function Header() {
 
         {usuario ? (
           <div className="flex items-center gap-2">
+            <Link
+              href="/painel/notificacoes"
+              aria-label="Notificações"
+              className="relative rounded-lg px-2 py-2 text-lg leading-none hover:bg-slate-100"
+            >
+              🔔
+              {naoLidas > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-rose-600 px-1 text-[10px] font-bold text-white">
+                  {naoLidas > 9 ? '9+' : naoLidas}
+                </span>
+              )}
+            </Link>
             <Link
               href="/painel"
               className="hidden rounded-lg px-3 py-2 text-sm font-bold text-marca-700 hover:bg-marca-50 sm:block"

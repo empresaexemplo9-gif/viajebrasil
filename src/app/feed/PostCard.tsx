@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { PostView } from '@/lib/server/feed';
+import { PostMenu } from './PostMenu';
 
 function quando(iso: string): string {
   const d = new Date(iso);
@@ -12,7 +13,17 @@ function quando(iso: string): string {
   return d.toLocaleDateString('pt-BR');
 }
 
-export function PostCard({ post }: { post: PostView }) {
+export function PostCard({
+  post,
+  souDono = false,
+  souAdmin = false,
+  logado = false,
+}: {
+  post: PostView;
+  souDono?: boolean;
+  souAdmin?: boolean;
+  logado?: boolean;
+}) {
   return (
     <div className="cartao">
       <div className="flex items-center gap-3">
@@ -29,12 +40,20 @@ export function PostCard({ post }: { post: PostView }) {
             </span>
           )}
         </Link>
-        <div>
+        <div className="min-w-0 flex-1">
           <Link href={`/perfil/${post.autorId}`} className="font-bold text-tinta hover:text-marca-700">
             {post.autorNome}
           </Link>
           <p className="text-xs text-slate-400">{quando(post.criadoEm)}</p>
         </div>
+        <PostMenu
+          postId={post.id}
+          texto={post.texto}
+          imagemUrl={post.imagemUrl}
+          souDono={souDono}
+          souAdmin={souAdmin}
+          logado={logado}
+        />
       </div>
 
       {post.texto && (

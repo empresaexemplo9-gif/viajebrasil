@@ -5,6 +5,7 @@ import { carregarUsuario, salvarPerfil } from '@/lib/server/repos';
 import { ehAdminPlataforma } from '@/lib/server/admin';
 import { obterPlano } from '@/lib/planos';
 import { UploadImagem } from '@/components/UploadImagem';
+import { CabecalhoPerfil } from '@/components/CabecalhoPerfil';
 
 export const metadata = { title: 'Meu painel' };
 
@@ -41,6 +42,19 @@ export default async function PainelPage({
 
   return (
     <div className="container-app py-12">
+      {/* Cabeçalho social (banner + foto), como no feed */}
+      <div className="mb-6">
+        <CabecalhoPerfil
+          id={u.id}
+          nome={u.nome}
+          avatarUrl={u.avatarUrl}
+          bannerUrl={u.perfil?.bannerUrl}
+          subtitulo={u.perfil?.areaAtuacao || u.email}
+          acaoHref={`/perfil/${u.id}`}
+          acaoRotulo="Ver perfil público"
+        />
+      </div>
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-3xl font-black tracking-tight text-tinta">

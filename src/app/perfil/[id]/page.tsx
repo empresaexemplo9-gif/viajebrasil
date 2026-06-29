@@ -6,6 +6,7 @@ import { iniciarConversaPorId } from '@/lib/server/chat';
 import { criarReuniao, emailDoUsuario } from '@/lib/server/agenda';
 import { captarDeUsuario, normalizarTipo, TIPOS_LEAD } from '@/lib/server/crm';
 import { postsDoPerfil } from '@/lib/server/feed';
+import { ehAdminPlataforma } from '@/lib/server/admin';
 import { PostCard } from '@/app/feed/PostCard';
 
 export const dynamic = 'force-dynamic';
@@ -219,7 +220,13 @@ export default async function PerfilPublicoPage({
         ) : (
           <div className="mt-4 grid gap-4">
             {posts.map((post) => (
-              <PostCard key={post.id} post={post} />
+              <PostCard
+                key={post.id}
+                post={post}
+                souDono={souEu}
+                souAdmin={ehAdminPlataforma(ctx?.email)}
+                logado={Boolean(ctx)}
+              />
             ))}
           </div>
         )}
