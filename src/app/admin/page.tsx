@@ -9,7 +9,9 @@ import {
   excluirTenant,
   excluirUsuario,
   alterarStatusUsuario,
+  excluirPerfisNaoAdmin,
 } from '@/lib/server/admin';
+import { ConfirmarSubmit } from '@/components/ConfirmarSubmit';
 import {
   listarDenuncias,
   resolverDenuncia,
@@ -23,7 +25,11 @@ function quando(iso: string): string {
   return new Date(iso).toLocaleDateString('pt-BR');
 }
 
-export default async function AdminPlataformaPage() {
+export default async function AdminPlataformaPage({
+  searchParams,
+}: {
+  searchParams?: { limpos?: string };
+}) {
   const ctx = await obterContexto();
   if (!ctx) redirect('/entrar?proximo=/admin');
   if (!ehAdminPlataforma(ctx.email)) {
@@ -76,6 +82,13 @@ export default async function AdminPlataformaPage() {
     if (!a || !ehAdminPlataforma(a.email)) redirect('/entrar');
     await resolverDenuncia(String(formData.get('id') ?? ''));
     redirect('/admin');
+  }
+  async function limparPerfis() {
+    'use server';
+    const a = await obterContexto();
+    if (!a || !ehAdminPlataforma(a.email)) redirect('/entrar');
+    const n = await excluirPerfisNaoAdmin();
+    redirect(`/admin?limpos=${n}`);
   }
 
   const [stats, tenants, usuarios, denuncias] = await Promise.all([
@@ -195,7 +208,22 @@ export default async function AdminPlataformaPage() {
       </div>
 
       {/* Usuários */}
-      <h2 className="mt-10 text-xl font-black text-tinta">Usuários ({usuarios.length})</h2>
+      <div className="mt-10 flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-xl font-black text-tinta">Usuários ({usuarios.length})</h2>
+        <form action={limparPerfis}>
+          <ConfirmarSubmit
+            mensagem="Excluir TODOS os perfis que não são superadmin (e todos os dados deles)? Esta ação é irreversível."
+            className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-rose-500"
+          >
+            🧹 Excluir todos os perfis (exceto superadmins)
+          </ConfirmarSubmit>
+        </form>
+      </div>
+      {searchParams?.limpos && (
+        <p className="mt-3 rounded-lg bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
+          {searchParams.limpos} perfil(is) excluído(s). Apenas superadmins permanecem.
+        </p>
+      )}
       <div className="mt-3 overflow-x-auto">
         <table className="w-full min-w-[680px] text-sm">
           <thead className="text-left text-xs font-semibold uppercase text-slate-400">

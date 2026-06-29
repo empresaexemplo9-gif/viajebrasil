@@ -116,3 +116,18 @@ export async function statusDoUsuario(id: string): Promise<string | null> {
   const u = await prisma.user.findUnique({ where: { id }, select: { status: true } });
   return u?.status ?? null;
 }
+
+/**
+ * Exclui TODOS os perfis que não são super_admin (e seus dados). Ação em massa
+ * irreversível — usada pela limpeza no painel admin. Mantém os superadmins.
+ */
+export async function excluirPerfisNaoAdmin(): Promise<number> {
+  const alvos = await prisma.user.findMany({
+    where: { papel: { not: 'super_admin' } },
+    select: { id: true },
+  });
+  for (const u of alvos) {
+    await excluirUsuario(u.id);
+  }
+  return alvos.length;
+}

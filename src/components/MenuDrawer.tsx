@@ -84,7 +84,7 @@ export function MenuDrawer({
             className="absolute inset-0 h-full w-full bg-black/40 backdrop-blur-sm"
           />
           {/* Painel */}
-          <aside className="absolute left-0 top-0 flex h-full w-full max-w-md flex-col bg-white shadow-2xl">
+          <aside className="absolute left-0 top-0 flex h-screen w-full max-w-md flex-col bg-white shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-200 px-4 py-4">
               <Link href="/" onClick={fechar} className="flex items-center gap-2">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
