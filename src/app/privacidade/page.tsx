@@ -20,7 +20,7 @@ const SECOES: { titulo: string; paragrafos: string[] }[] = [
       'Dados de cadastro: nome, e-mail, senha (armazenada de forma criptografada/hash), tipo de perfil e nome do negócio.',
       'Dados de perfil e conteúdo: foto, banner, biografia, área de atuação, região, currículos, produtos/serviços, vagas, propostas, mensagens, posts e demais conteúdos que você cria.',
       'Dados de uso e técnicos: registros de acesso, endereço IP, data/hora, ações realizadas e cookies de sessão necessários à autenticação.',
-      'Dados de pagamento: quando você assina um plano pago, os dados de pagamento são tratados diretamente pelo provedor (Stripe); não armazenamos números completos de cartão.',
+      'Dados de pagamento: quando você assina um plano pago, os dados de pagamento são tratados diretamente pelo provedor (Asaas); não armazenamos números completos de cartão.',
     ],
   },
   {
@@ -41,7 +41,7 @@ const SECOES: { titulo: string; paragrafos: string[] }[] = [
   {
     titulo: '5. Compartilhamento',
     paragrafos: [
-      'Não vendemos seus dados pessoais. Compartilhamos dados apenas na medida necessária com provedores que viabilizam o serviço, como hospedagem e infraestrutura (Vercel), pagamentos (Stripe), envio de e-mails e provedores de recursos de inteligência artificial.',
+      'Não vendemos seus dados pessoais. Compartilhamos dados apenas na medida necessária com provedores que viabilizam o serviço, como hospedagem e infraestrutura (Vercel), pagamentos (Asaas), envio de e-mails e provedores de recursos de inteligência artificial.',
       'Conteúdo que você publica de forma pública (perfil, vitrine, vagas, posts) fica visível para outros usuários conforme as configurações de visibilidade. Também podemos compartilhar dados para cumprir ordem judicial ou exigência legal.',
     ],
   },

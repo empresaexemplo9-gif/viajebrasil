@@ -31,7 +31,7 @@ const SECOES: { titulo: string; paragrafos: string[] }[] = [
   {
     titulo: '4. Planos, assinaturas e pagamentos',
     paragrafos: [
-      'A plataforma oferece um plano gratuito e planos pagos (Prime), com recursos adicionais. As assinaturas pagas são processadas por meio de provedor de pagamento terceiro (Stripe), sujeito aos termos e à política de privacidade do próprio provedor.',
+      'A plataforma oferece um plano gratuito e planos pagos (Prime), com recursos adicionais. As assinaturas pagas são processadas por meio de provedor de pagamento terceiro (Asaas), sujeito aos termos e à política de privacidade do próprio provedor.',
       'Salvo indicação em contrário, as assinaturas são renovadas automaticamente ao fim de cada ciclo. Você pode cancelar a renovação a qualquer momento; o cancelamento passa a valer no fim do período já pago, sem reembolso proporcional, exceto quando exigido por lei.',
     ],
   },
