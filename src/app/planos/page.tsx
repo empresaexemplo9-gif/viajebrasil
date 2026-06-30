@@ -4,6 +4,8 @@ import { obterContexto } from '@/lib/server/session';
 import { assinarPlano } from '@/lib/server/repos';
 import { stripeAtivo } from '@/lib/server/stripe';
 import { criarCheckout, criarPortal } from '@/lib/server/assinatura';
+import { asaasAtivo } from '@/lib/server/asaas';
+import { criarCheckoutAsaas } from '@/lib/server/assinatura-asaas';
 import {
   listarPlanos,
   precoFormatado,
@@ -31,10 +33,15 @@ export default async function PlanosPage({
     if (!atual) redirect('/entrar?proximo=/planos');
     const chave = String(formData.get('plano') ?? 'free') as ChavePlano;
     const trial = String(formData.get('trial') ?? '') === '1';
-    // Com Stripe configurado, planos pagos vão para o checkout real.
-    if (stripeAtivo() && chave !== 'free') {
-      const url = await criarCheckout({ tenantId: atual.tenantId, email: atual.email, chave, trial });
-      redirect(url);
+    // Planos pagos (sem trial) vão para o checkout real: Asaas tem prioridade,
+    // depois Stripe. Trial e Free são ativados direto (modo demonstração).
+    if (chave !== 'free' && !trial) {
+      if (asaasAtivo()) {
+        redirect(await criarCheckoutAsaas({ tenantId: atual.tenantId, chave }));
+      }
+      if (stripeAtivo()) {
+        redirect(await criarCheckout({ tenantId: atual.tenantId, email: atual.email, chave, trial: false }));
+      }
     }
     await assinarPlano(atual.tenantId, chave, trial ? TRIAL_DIAS : 0);
     redirect(`/painel/prime?ok=${trial ? 'trial' : 'assinado'}`);
