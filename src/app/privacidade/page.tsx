@@ -10,7 +10,8 @@ const SECOES: { titulo: string; paragrafos: string[] }[] = [
     titulo: '1. Quem somos',
     paragrafos: [
       'Esta Política de Privacidade explica como a plataforma DRAP Business ("DRAP", "nós") coleta, usa, compartilha e protege dados pessoais, em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018 — LGPD).',
-      'Ao usar a plataforma, você concorda com as práticas descritas aqui. Para fins da LGPD, a DRAP atua como controladora dos dados de cadastro e uso da plataforma.',
+      'A plataforma é operada por DRAP Inteligência de Mercado Ltda., inscrita no CNPJ nº 64.759.314/0001-55, com sede na Av. Campos Elísios, 1044, Quadra 220 – Lote 08, Jardim Novo Mundo, Goiânia/GO, CEP 74.705-020, que atua como controladora dos dados de cadastro e uso da plataforma, para fins da LGPD.',
+      'Ao usar a plataforma, você concorda com as práticas descritas aqui.',
     ],
   },
   {
@@ -95,6 +96,13 @@ const SECOES: { titulo: string; paragrafos: string[] }[] = [
       'Podemos atualizar esta política periodicamente. Mudanças relevantes serão sinalizadas na plataforma, e a data de "última atualização" no topo será revisada.',
     ],
   },
+  {
+    titulo: '14. Encarregado (DPO) e contato',
+    paragrafos: [
+      'O Encarregado pelo Tratamento de Dados Pessoais (DPO) é Marcelo Carvalho Furtado Junior, que pode ser contatado pelo e-mail dpo@drap.app.br para o exercício dos seus direitos e demais questões de privacidade.',
+      'Para outros assuntos, utilize o e-mail de suporte: suporte@drap.app.br.',
+    ],
+  },
 ];
 
 export default function PrivacidadePage() {
@@ -125,8 +133,7 @@ export default function PrivacidadePage() {
           <Link href="/termos" className="font-semibold text-marca-600 hover:underline">
             Termos de Uso
           </Link>
-          . Dúvidas sobre privacidade podem ser enviadas pelo canal de suporte informado no
-          aplicativo.
+          . Dúvidas sobre privacidade podem ser enviadas para o DPO em dpo@drap.app.br.
         </p>
       </div>
     </div>

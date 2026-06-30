@@ -9,7 +9,8 @@ const SECOES: { titulo: string; paragrafos: string[] }[] = [
   {
     titulo: '1. Aceitação dos termos',
     paragrafos: [
-      'Estes Termos de Uso regem o acesso e o uso da plataforma DRAP Business ("DRAP", "plataforma", "nós"). Ao criar uma conta, marcar a opção de aceite ou utilizar a plataforma, você declara que leu, entendeu e concorda com estes termos e com a Política de Privacidade.',
+      'A plataforma DRAP Business é operada por DRAP Inteligência de Mercado Ltda., inscrita no CNPJ nº 64.759.314/0001-55, com sede na Av. Campos Elísios, 1044, Quadra 220 – Lote 08, Jardim Novo Mundo, Goiânia/GO, CEP 74.705-020 ("DRAP", "plataforma", "nós").',
+      'Estes Termos de Uso regem o acesso e o uso da plataforma. Ao criar uma conta, marcar a opção de aceite ou utilizar a plataforma, você declara que leu, entendeu e concorda com estes termos e com a Política de Privacidade.',
       'Se você não concorda com qualquer parte destes termos, não utilize a plataforma.',
     ],
   },
@@ -83,7 +84,13 @@ const SECOES: { titulo: string; paragrafos: string[] }[] = [
   {
     titulo: '12. Lei aplicável e foro',
     paragrafos: [
-      'Estes termos são regidos pelas leis da República Federativa do Brasil. Fica eleito o foro do domicílio do consumidor para dirimir eventuais controvérsias, quando aplicável.',
+      'Estes termos são regidos pelas leis da República Federativa do Brasil. Para relações de consumo, fica eleito o foro do domicílio do consumidor; nas demais hipóteses, o foro da Comarca de Goiânia/GO, para dirimir eventuais controvérsias.',
+    ],
+  },
+  {
+    titulo: '13. Contato',
+    paragrafos: [
+      'Dúvidas, solicitações ou comunicações relacionadas a estes Termos de Uso podem ser enviadas para o e-mail de suporte: suporte@drap.app.br.',
     ],
   },
 ];
