@@ -34,7 +34,7 @@ export default function DiretrizesPage() {
   return (
     <div className="container-app py-12">
       <div className="mx-auto max-w-2xl">
-        <span className="selo bg-ink-900 text-white">Comunidade</span>
+        <span className="selo bg-ink-900 text-creme">Comunidade</span>
         <h1 className="mt-2 text-3xl font-black tracking-tight text-tinta">
           Diretrizes da comunidade
         </h1>

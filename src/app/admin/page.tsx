@@ -102,7 +102,7 @@ export default async function AdminPlataformaPage({
     <div className="container-app py-12">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <span className="selo bg-ink-900 text-white">Admin da plataforma</span>
+          <span className="selo bg-ink-900 text-creme">Admin da plataforma</span>
           <h1 className="mt-2 text-3xl font-black tracking-tight text-tinta">Painel administrativo</h1>
           <p className="text-slate-500">Edições e reparos em toda a plataforma — {ctx.email}</p>
         </div>

@@ -37,9 +37,9 @@ export async function Header() {
         <div className="flex items-center gap-2">
           {/* Menu lateral (≡) com todas as opções — estilo redes sociais */}
           <MenuDrawer logado={Boolean(usuario)} admin={admin} nome={usuario?.name} />
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/" className="flex items-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/drap-logo.svg" alt="DRAP Business" className="h-9 w-auto" />
+            <img src="/drap-logo.svg" alt="DRAP Business" className="h-10 w-auto" />
           </Link>
         </div>
 
@@ -48,7 +48,7 @@ export async function Header() {
             <Link
               key={i.href}
               href={i.href}
-              className="rounded-lg px-3 py-2 text-sm font-semibold text-ink-100 transition hover:bg-white/10 hover:text-white"
+              className="rounded-lg px-3 py-2 text-sm font-semibold text-ink-100 transition hover:bg-white/10 hover:text-creme"
             >
               {i.rotulo}
             </Link>
@@ -71,7 +71,7 @@ export async function Header() {
             </Link>
             <Link
               href="/painel"
-              className="hidden rounded-lg px-3 py-2 text-sm font-bold text-ink-100 hover:bg-white/10 hover:text-white sm:block"
+              className="hidden rounded-lg px-3 py-2 text-sm font-bold text-ink-100 hover:bg-white/10 hover:text-creme sm:block"
             >
               {(usuario.name ?? 'Conta').split(' ')[0]}
             </Link>

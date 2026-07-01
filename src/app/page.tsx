@@ -19,7 +19,7 @@ export default function Home() {
   return (
     <>
       {/* Hero */}
-      <section className="bg-gradient-to-br from-ink-950 via-ink-900 to-ink-800 text-white">
+      <section className="bg-gradient-to-br from-ink-950 via-ink-900 to-ink-800 text-creme">
         <div className="container-app py-20 sm:py-28">
           <span className="selo bg-marca-500/15 text-marca-300">Hub de negócios e conexões</span>
           <h1 className="mt-4 max-w-3xl text-4xl font-black leading-tight tracking-tight sm:text-5xl">
@@ -33,7 +33,7 @@ export default function Home() {
             <Link href="/entrar?aba=criar" className="btn-acento">
               Criar meu perfil
             </Link>
-            <Link href="/feed" className="btn-secundario !border-white/30 !bg-transparent !text-white hover:!border-white hover:!text-white">
+            <Link href="/feed" className="btn-secundario !border-creme/30 !bg-transparent !text-creme hover:!border-creme hover:!text-creme">
               Ver a rede de captação
             </Link>
           </div>

@@ -169,7 +169,7 @@ export default async function PerfilPublicoPage({
 
       {/* Controles do superadmin: bloquear / excluir qualquer perfil */}
       {souAdmin && !souEu && (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ink-900 bg-ink-950 px-4 py-3 text-white">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ink-900 bg-ink-950 px-4 py-3 text-creme">
           <span className="flex items-center gap-2 text-sm font-bold">
             <Icon name="shield" size={18} className="text-marca-300" />
             Moderação · status do perfil:{' '}
