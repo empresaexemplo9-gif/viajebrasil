@@ -26,6 +26,7 @@ export type Permissao =
   | 'candidatos:gerenciar'
   | 'produtos:ler'
   | 'produtos:gerenciar'
+  | 'crm:gerenciar'
   | 'painel:ler';
 
 const TODAS: Permissao[] = [
@@ -38,6 +39,7 @@ const TODAS: Permissao[] = [
   'candidatos:gerenciar',
   'produtos:ler',
   'produtos:gerenciar',
+  'crm:gerenciar',
   'painel:ler',
 ];
 
@@ -52,6 +54,7 @@ const MATRIZ: Record<Papel, Permissao[]> = {
     'candidatos:gerenciar',
     'produtos:ler',
     'produtos:gerenciar',
+    'crm:gerenciar',
     'painel:ler',
   ],
   manager: [
@@ -61,10 +64,11 @@ const MATRIZ: Record<Papel, Permissao[]> = {
     'candidatos:gerenciar',
     'produtos:ler',
     'produtos:gerenciar',
+    'crm:gerenciar',
     'painel:ler',
   ],
   recruiter: ['vagas:ler', 'vagas:gerenciar', 'candidatos:ler', 'candidatos:gerenciar', 'painel:ler'],
-  seller: ['produtos:ler', 'produtos:gerenciar', 'painel:ler'],
+  seller: ['produtos:ler', 'produtos:gerenciar', 'crm:gerenciar', 'painel:ler'],
   candidate: ['vagas:ler', 'produtos:ler'],
   viewer: ['vagas:ler', 'produtos:ler', 'candidatos:ler', 'painel:ler'],
 };

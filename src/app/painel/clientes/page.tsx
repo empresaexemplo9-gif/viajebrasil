@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { obterContexto } from '@/lib/server/session';
+import { pode } from '@/lib/rbac';
 import { listarClientes, excluirCliente } from '@/lib/server/crm';
 
 export const metadata = { title: 'Clientes' };
@@ -14,6 +15,7 @@ export default async function ClientesPage() {
     'use server';
     const a = await obterContexto();
     if (!a) redirect('/entrar');
+    if (!pode(a.papel, 'crm:gerenciar')) redirect('/painel/clientes');
     await excluirCliente(a.tenantId, String(formData.get('id') ?? ''));
     redirect('/painel/clientes');
   }

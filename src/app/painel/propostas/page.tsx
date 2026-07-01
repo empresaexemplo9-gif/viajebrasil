@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { obterContexto } from '@/lib/server/session';
+import { pode } from '@/lib/rbac';
 import { listarPropostas, criarProposta, excluirProposta } from '@/lib/server/propostas';
 
 export const metadata = { title: 'Propostas' };
@@ -14,6 +15,7 @@ export default async function PropostasPage({ searchParams }: { searchParams?: {
     'use server';
     const a = await obterContexto();
     if (!a) redirect('/entrar');
+    if (!pode(a.papel, 'crm:gerenciar')) redirect('/painel/propostas');
     const token = await criarProposta(a.tenantId, a.userId, {
       clienteNome: String(formData.get('clienteNome') ?? '').trim(),
       clienteEmail: String(formData.get('clienteEmail') ?? '').trim(),
@@ -28,6 +30,7 @@ export default async function PropostasPage({ searchParams }: { searchParams?: {
     'use server';
     const a = await obterContexto();
     if (!a) redirect('/entrar');
+    if (!pode(a.papel, 'crm:gerenciar')) redirect('/painel/propostas');
     await excluirProposta(a.tenantId, String(formData.get('token') ?? ''));
     redirect('/painel/propostas');
   }

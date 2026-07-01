@@ -718,3 +718,12 @@ model Denuncia {
   @@index([postId])
   @@map("denuncias")
 }
+
+/// Eventos de webhook já processados (idempotência). A id é o id do evento do
+/// provedor (ex.: "stripe_evt_..."), garantindo que um replay não reprocesse.
+model WebhookEvent {
+  id       String   @id
+  criadoEm DateTime @default(now())
+
+  @@map("webhook_events")
+}

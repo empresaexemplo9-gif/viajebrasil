@@ -9,6 +9,7 @@
 import { NextResponse } from 'next/server';
 import { getStripe, stripeAtivo } from '@/lib/server/stripe';
 import { processarEventoStripe } from '@/lib/server/assinatura';
+import { prisma } from '@/lib/server/prisma';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -34,11 +35,24 @@ export async function POST(req: Request) {
     );
   }
 
+  // Idempotência: registra o id do evento antes de processar. Se já existe,
+  // é um replay/entrega duplicada → ignora sem reprocessar.
+  const eventoId = `stripe_${event.id}`;
+  try {
+    await prisma.webhookEvent.create({ data: { id: eventoId } });
+  } catch {
+    // Violação de unique (ou indisponibilidade): trata como já processado.
+    return NextResponse.json({ received: true, duplicado: true });
+  }
+
   try {
     await processarEventoStripe(event);
   } catch (e) {
     console.error('Erro ao processar webhook Stripe:', e);
-    // 200 mesmo assim evita retries infinitos; o erro fica no log.
+    // Falha real: apaga a marca para permitir reprocessamento e devolve 5xx,
+    // para o Stripe reenviar o evento.
+    await prisma.webhookEvent.deleteMany({ where: { id: eventoId } }).catch(() => {});
+    return NextResponse.json({ erro: 'Falha ao processar evento' }, { status: 500 });
   }
   return NextResponse.json({ received: true });
 }

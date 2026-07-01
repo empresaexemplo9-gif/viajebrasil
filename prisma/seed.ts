@@ -6,11 +6,23 @@
  */
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { randomBytes } from 'node:crypto';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  const senhaHash = await bcrypt.hash('Drap@2026', 12);
+  // Nunca semear dados de demonstração em produção (evita super_admin de teste
+  // com senha conhecida na base real). Force com PERMITIR_SEED_PROD=1 se preciso.
+  const ehProd = process.env.VERCEL_ENV === 'production' || process.env.NODE_ENV === 'production';
+  if (ehProd && process.env.PERMITIR_SEED_PROD !== '1') {
+    console.warn('[seed] Ambiente de produção detectado — seed de demonstração ignorado.');
+    return;
+  }
+
+  // Senha do seed: usa SEED_PASSWORD se definida; senão gera uma aleatória e a
+  // imprime uma única vez no log do build (não fica fixa no código).
+  const senhaSeed = process.env.SEED_PASSWORD || randomBytes(9).toString('base64url');
+  const senhaHash = await bcrypt.hash(senhaSeed, 12);
 
   const tenant = await prisma.tenant.upsert({
     where: { slug: 'demo' },
@@ -134,7 +146,7 @@ async function main() {
     });
   }
 
-  console.info(`Seed OK. Tenant=${tenant.slug} | login admin@demo.drap | senha Drap@2026`);
+  console.info(`Seed OK. Tenant=${tenant.slug} | login admin@demo.drap | senha: ${senhaSeed}`);
 }
 
 main()

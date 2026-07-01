@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { obterContexto } from '@/lib/server/session';
+import { pode } from '@/lib/rbac';
 import {
   listarLeads,
   criarLead,
@@ -25,6 +26,7 @@ export default async function CrmPage({ searchParams }: { searchParams?: { ok?: 
     'use server';
     const a = await obterContexto();
     if (!a) redirect('/entrar');
+    if (!pode(a.papel, 'crm:gerenciar')) redirect('/painel/crm?erro=permissao');
     await criarLead(a.tenantId, a.userId, {
       nome: String(formData.get('nome') ?? '').trim(),
       email: String(formData.get('email') ?? '').trim(),
@@ -41,6 +43,7 @@ export default async function CrmPage({ searchParams }: { searchParams?: { ok?: 
     'use server';
     const a = await obterContexto();
     if (!a) redirect('/entrar');
+    if (!pode(a.papel, 'crm:gerenciar')) redirect('/painel/crm?erro=permissao');
     await moverLead(a.tenantId, String(formData.get('id') ?? ''), String(formData.get('etapa')) as Etapa);
     redirect('/painel/crm');
   }
@@ -48,6 +51,7 @@ export default async function CrmPage({ searchParams }: { searchParams?: { ok?: 
     'use server';
     const a = await obterContexto();
     if (!a) redirect('/entrar');
+    if (!pode(a.papel, 'crm:gerenciar')) redirect('/painel/crm?erro=permissao');
     await excluirLead(a.tenantId, String(formData.get('id') ?? ''));
     redirect('/painel/crm');
   }
@@ -55,6 +59,7 @@ export default async function CrmPage({ searchParams }: { searchParams?: { ok?: 
     'use server';
     const a = await obterContexto();
     if (!a) redirect('/entrar');
+    if (!pode(a.papel, 'crm:gerenciar')) redirect('/painel/crm?erro=permissao');
     const token = await criarPropostaDeLead(a.tenantId, a.userId, String(formData.get('id') ?? ''));
     redirect(token ? `/proposta/${token}` : '/painel/crm');
   }
