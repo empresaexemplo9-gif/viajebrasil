@@ -14,28 +14,14 @@ export const dynamic = 'force-dynamic';
 
 const TIPOS_OK = ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/svg+xml'];
 
-/** Diagnóstico: diz se o Vercel Blob está configurado (sem expor o token). */
+/**
+ * Diz só se o upload está disponível (booleano). Exige sessão e NÃO expõe
+ * detalhes de infraestrutura (ambiente, commit, nomes de variáveis).
+ */
 export async function GET() {
-  const token = process.env.BLOB_READ_WRITE_TOKEN ?? '';
-  const ativo = Boolean(token);
-  // Diagnóstico extra (NÃO expõe o valor do token): lista só os NOMES das
-  // variáveis que contêm "BLOB" e o ambiente/commit do deploy. Ajuda a descobrir
-  // por que o token não chega no runtime (escopo, nome errado, store em outro projeto).
-  const variaveisComBlob = Object.keys(process.env).filter((k) => k.includes('BLOB'));
-  return Response.json({
-    blobAtivo: ativo,
-    mensagem: ativo
-      ? 'Vercel Blob ativo: uploads de imagem funcionam.'
-      : 'Vercel Blob NÃO configurado: defina BLOB_READ_WRITE_TOKEN na Vercel.',
-    diagnostico: {
-      ambiente: process.env.VERCEL_ENV ?? 'desconhecido',
-      tokenPresente: ativo,
-      tokenTamanho: token.length,
-      tokenPrefixoOk: token.startsWith('vercel_blob_rw_'),
-      variaveisComBlob,
-      commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? 'desconhecido',
-    },
-  });
+  const ctx = await obterContexto();
+  if (!ctx) return Response.json({ erro: 'Não autenticado' }, { status: 403 });
+  return Response.json({ blobAtivo: Boolean(process.env.BLOB_READ_WRITE_TOKEN) });
 }
 
 export async function POST(req: Request) {

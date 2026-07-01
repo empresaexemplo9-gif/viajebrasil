@@ -11,17 +11,24 @@ import {
   precoFormatado,
   limiteCurriculos,
   dePlanoDb,
+  ORDEM,
   type ChavePlano,
 } from '@/lib/planos';
+import { pode } from '@/lib/rbac';
 
 export const metadata = { title: 'Planos e visibilidade' };
 
 const TRIAL_DIAS = 7;
 
+/** Produção real: não conceder plano pago sem pagamento fora de dev/demo. */
+function ehProducao(): boolean {
+  return process.env.VERCEL_ENV === 'production' || process.env.NODE_ENV === 'production';
+}
+
 export default async function PlanosPage({
   searchParams,
 }: {
-  searchParams?: { ok?: string };
+  searchParams?: { ok?: string; erro?: string };
 }) {
   const usuario = await obterContexto();
   const planos = listarPlanos();
@@ -31,7 +38,12 @@ export default async function PlanosPage({
     'use server';
     const atual = await obterContexto();
     if (!atual) redirect('/entrar?proximo=/planos');
-    const chave = String(formData.get('plano') ?? 'free') as ChavePlano;
+    // Faturamento é ação de dono do negócio: exige tenant:gerenciar (super_admin).
+    if (!pode(atual.papel, 'tenant:gerenciar')) redirect('/planos?erro=permissao');
+    // Valida o plano contra o enum conhecido (evita valores forjados).
+    const chaveRaw = String(formData.get('plano') ?? 'free');
+    if (!(ORDEM as string[]).includes(chaveRaw)) redirect('/planos?erro=plano');
+    const chave = chaveRaw as ChavePlano;
     const trial = String(formData.get('trial') ?? '') === '1';
     // Planos pagos (sem trial) vão para o checkout real: Asaas tem prioridade,
     // depois Stripe. Trial e Free são ativados direto (modo demonstração).
@@ -42,6 +54,9 @@ export default async function PlanosPage({
       if (stripeAtivo()) {
         redirect(await criarCheckout({ tenantId: atual.tenantId, email: atual.email, chave, trial: false }));
       }
+      // Sem provedor de pagamento ativo: nunca conceder plano pago de graça
+      // em produção (só em dev/demo é liberado para testes).
+      if (ehProducao()) redirect('/planos?erro=pagamento');
     }
     await assinarPlano(atual.tenantId, chave, trial ? TRIAL_DIAS : 0);
     redirect(`/painel/prime?ok=${trial ? 'trial' : 'assinado'}`);
@@ -51,11 +66,23 @@ export default async function PlanosPage({
     'use server';
     const atual = await obterContexto();
     if (!atual) redirect('/entrar?proximo=/planos');
+    if (!pode(atual.papel, 'tenant:gerenciar')) redirect('/planos?erro=permissao');
     redirect(await criarPortal(atual.tenantId));
   }
 
+  const MSG_ERRO: Record<string, string> = {
+    permissao: 'Apenas o administrador do negócio pode alterar o plano/assinatura.',
+    plano: 'Plano inválido.',
+    pagamento: 'Pagamento indisponível no momento. Configure o provedor de pagamento para assinar.',
+  };
+
   return (
     <div className="container-app py-12">
+      {searchParams?.erro && MSG_ERRO[searchParams.erro] && (
+        <p className="mb-4 rounded-lg bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
+          {MSG_ERRO[searchParams.erro]}
+        </p>
+      )}
       <span className="selo bg-marca-100 text-marca-700">Monetização por visibilidade</span>
       <h1 className="mt-3 text-3xl font-black tracking-tight text-tinta sm:text-4xl">
         Apareça primeiro. Contrate com IA.

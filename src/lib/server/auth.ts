@@ -194,6 +194,32 @@ export const authOptions: NextAuthOptions = {
       : []),
   ],
   callbacks: {
+    // Barreira de login social: previne account takeover.
+    async signIn({ account, profile, user }) {
+      // E-mail/senha passa direto (já validado no authorize).
+      if (!account || account.provider === 'credentials') return true;
+
+      // 1) Exige e-mail verificado pelo provedor (Google/OIDC LinkedIn).
+      const ev = (profile as { email_verified?: boolean | string } | null)?.email_verified;
+      const emailVerificado = ev === true || ev === 'true';
+      if (!emailVerificado) return false;
+
+      const email = (user?.email ?? (profile as { email?: string } | null)?.email ?? '')
+        .trim()
+        .toLowerCase();
+      if (!email) return false;
+
+      // 2) Não vincular login social a uma conta que já tem SENHA (evita que um
+      //    login social com o mesmo e-mail assuma uma conta de e-mail+senha).
+      //    Contas sem senha (criadas por social/OTP) podem entrar normalmente.
+      const existente = await prisma.user.findFirst({
+        where: { email },
+        select: { senhaHash: true },
+      });
+      if (existente?.senhaHash) return false;
+
+      return true;
+    },
     async jwt({ token, user, account }) {
       // Login por e-mail/senha: o `user` já traz as claims (tenantId etc.).
       if (user && (user as { tenantId?: string }).tenantId) {
