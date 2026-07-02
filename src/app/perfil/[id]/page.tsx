@@ -126,78 +126,12 @@ export default async function PerfilPublicoPage({
         ← Buscar perfis
       </Link>
 
-      {souEu && !p.visibilidadePublica && (
-        <p className="mt-3 rounded-lg bg-amber-50 px-4 py-2 text-xs font-semibold text-amber-700">
-          Seu perfil está <strong>oculto</strong> da busca pública — só você e a administração o veem.
-          Ative “Aparecer na busca pública” no <Link href="/painel" className="underline">painel</Link> para deixá-lo visível.
-        </p>
-      )}
-
-      {/* Banner + avatar */}
-      <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200">
-        {/* Banner adaptável (~2.9:1, cobre 1750×570 até 1900×680) */}
-        <div className="relative aspect-[29/10] w-full bg-gradient-to-br from-ink-900 to-ink-700">
-          {p.bannerUrl && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={p.bannerUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
-          )}
-          {p.destaque && (
-            <span className="selo absolute right-3 top-3 bg-marca-600 text-white">{p.destaque}</span>
-          )}
-        </div>
-        <div className="relative px-5 pb-5">
-          <div className="absolute -top-10 left-5 h-20 w-20 overflow-hidden rounded-full border-4 border-white bg-marca-100">
-            {p.avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={p.avatarUrl} alt={p.nome} className="h-full w-full object-cover" />
-            ) : (
-              <span className="grid h-full w-full place-items-center text-2xl font-black text-marca-700">
-                {p.nome.charAt(0)}
-              </span>
-            )}
-          </div>
-          <div className="pt-12">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-2xl font-black text-tinta">{p.nome}</h1>
-                <span className="selo bg-slate-100 text-slate-600">
-                  {ROTULO_TIPO[p.tipoProfile] ?? p.tipoProfile}
-                </span>
-                <span className="selo bg-marca-50 text-marca-700" title="Score do perfil (IA): completude + atividade">
-                  Score {p.score}
-                </span>
-              </div>
-              {!souEu ? (
-                <div className="flex flex-wrap gap-2">
-                  <form action={conversar}>
-                    <button className="btn-primario !py-2">Conversar</button>
-                  </form>
-                  <a href="#contato" className="btn-primario !py-2">Solicitar orçamento</a>
-                  <form action={agendar}>
-                    <button className="btn-secundario !py-2">Agendar reunião</button>
-                  </form>
-                </div>
-              ) : (
-                <Link href="/painel#editar" className="btn-secundario !py-2">
-                  Editar meu perfil
-                </Link>
-              )}
-            </div>
-            {p.representa && <p className="text-sm font-semibold text-marca-600">{p.representa}</p>}
-            <p className="mt-1 text-sm text-slate-500">
-              {p.areaAtuacao || '—'} · {p.regiao || '—'}
-            </p>
-            {p.bio && <p className="mt-4 max-w-2xl whitespace-pre-line text-slate-700">{p.bio}</p>}
-          </div>
-        </div>
-      </div>
-
-      {/* Controles do superadmin: bloquear / excluir qualquer perfil */}
+      {/* Edição moderador (superadmin) — no TOPO, bem visível. */}
       {souAdmin && !souEu && (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ink-900 bg-ink-950 px-4 py-3 text-creme">
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ink-900 bg-ink-950 px-4 py-3 text-creme">
           <span className="flex items-center gap-2 text-sm font-bold">
             <Icon name="shield" size={18} className="text-marca-300" />
-            Moderação · status do perfil:{' '}
+            Edição moderador · status:{' '}
             <span className={statusPerfil === 'suspenso' ? 'text-rose-300' : 'text-emerald-300'}>
               {statusPerfil ?? 'desconhecido'}
             </span>
@@ -263,6 +197,72 @@ export default async function PerfilPublicoPage({
           </form>
         </div>
       )}
+
+      {souEu && !p.visibilidadePublica && (
+        <p className="mt-3 rounded-lg bg-amber-50 px-4 py-2 text-xs font-semibold text-amber-700">
+          Seu perfil está <strong>oculto</strong> da busca pública — só você e a administração o veem.
+          Ative “Aparecer na busca pública” no <Link href="/painel" className="underline">painel</Link> para deixá-lo visível.
+        </p>
+      )}
+
+      {/* Banner + avatar */}
+      <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200">
+        {/* Banner adaptável (~2.9:1, cobre 1750×570 até 1900×680) */}
+        <div className="relative aspect-[29/10] w-full bg-gradient-to-br from-ink-900 to-ink-700">
+          {p.bannerUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={p.bannerUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          )}
+          {p.destaque && (
+            <span className="selo absolute right-3 top-3 bg-marca-600 text-white">{p.destaque}</span>
+          )}
+        </div>
+        <div className="relative px-5 pb-5">
+          <div className="absolute -top-10 left-5 h-20 w-20 overflow-hidden rounded-full border-4 border-white bg-marca-100">
+            {p.avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={p.avatarUrl} alt={p.nome} className="h-full w-full object-cover" />
+            ) : (
+              <span className="grid h-full w-full place-items-center text-2xl font-black text-marca-700">
+                {p.nome.charAt(0)}
+              </span>
+            )}
+          </div>
+          <div className="pt-12">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-2xl font-black text-tinta">{p.nome}</h1>
+                <span className="selo bg-slate-100 text-slate-600">
+                  {ROTULO_TIPO[p.tipoProfile] ?? p.tipoProfile}
+                </span>
+                <span className="selo bg-marca-50 text-marca-700" title="Score do perfil (IA): completude + atividade">
+                  Score {p.score}
+                </span>
+              </div>
+              {!souEu ? (
+                <div className="flex flex-wrap gap-2">
+                  <form action={conversar}>
+                    <button className="btn-primario !py-2">Conversar</button>
+                  </form>
+                  <a href="#contato" className="btn-primario !py-2">Solicitar orçamento</a>
+                  <form action={agendar}>
+                    <button className="btn-secundario !py-2">Agendar reunião</button>
+                  </form>
+                </div>
+              ) : (
+                <Link href="/painel#editar" className="btn-secundario !py-2">
+                  Editar meu perfil
+                </Link>
+              )}
+            </div>
+            {p.representa && <p className="text-sm font-semibold text-marca-600">{p.representa}</p>}
+            <p className="mt-1 text-sm text-slate-500">
+              {p.areaAtuacao || '—'} · {p.regiao || '—'}
+            </p>
+            {p.bio && <p className="mt-4 max-w-2xl whitespace-pre-line text-slate-700">{p.bio}</p>}
+          </div>
+        </div>
+      </div>
 
       {/* Captação: solicitar orçamento / demonstrar interesse */}
       {!souEu && (
