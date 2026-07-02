@@ -5,7 +5,7 @@
 import { randomUUID } from 'node:crypto';
 import { prisma } from './prisma';
 import { hashSenha, politicaSenha } from './password';
-import { enviarEmail } from './email';
+import { enviarEmail, emailAtivo } from './email';
 
 const VALIDADE_MS = 60 * 60 * 1000;
 
@@ -17,15 +17,30 @@ function urlBase(): string {
 export async function solicitarReset(email: string): Promise<void> {
   const e = email.trim().toLowerCase();
   if (!e) return;
+
+  // Diagnóstico (aparece no log da função na Vercel) para saber por que um
+  // reset "não chega": transporte de e-mail desativado, NEXTAUTH_URL ausente,
+  // ou nenhuma conta com esse e-mail.
+  if (!emailAtivo()) {
+    console.warn('[reset] envio de e-mail DESATIVADO (defina SMTP_* ou RESEND_API_KEY). Link não será enviado.');
+  }
+  if (!urlBase()) {
+    console.warn('[reset] NEXTAUTH_URL ausente — o link do e-mail sairia relativo/quebrado.');
+  }
+
   // Pode haver o mesmo e-mail em vários tenants; envia link para cada conta.
   const usuarios = await prisma.user.findMany({ where: { email: e }, select: { id: true, nome: true } });
+  if (usuarios.length === 0) {
+    console.info(`[reset] nenhuma conta com o e-mail solicitado (resposta neutra).`);
+    return;
+  }
   for (const u of usuarios) {
     const token = `${randomUUID()}${randomUUID()}`.replace(/-/g, '');
     await prisma.resetSenha.create({
       data: { userId: u.id, token, expiraEm: new Date(Date.now() + VALIDADE_MS) },
     });
     const link = `${urlBase()}/redefinir-senha?token=${token}`;
-    await enviarEmail({
+    const ok = await enviarEmail({
       para: e,
       assunto: 'Redefinir sua senha — DRAP Business',
       html: `
@@ -36,6 +51,7 @@ export async function solicitarReset(email: string): Promise<void> {
           <p style="color:#64748b;font-size:13px">O link vale por 1 hora. Se você não pediu isso, ignore este e-mail.</p>
         </div>`,
     });
+    console.info(`[reset] envio para conta ${u.id}: ${ok ? 'ENVIADO' : 'FALHOU'}.`);
   }
 }
 

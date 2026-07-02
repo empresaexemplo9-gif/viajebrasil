@@ -11,11 +11,17 @@ export const dynamic = 'force-dynamic';
 export default function RecuperarSenhaPage({ searchParams }: { searchParams?: { enviado?: string } }) {
   async function pedir(formData: FormData) {
     'use server';
-    // Rate-limit por IP contra spam de e-mail e enumeração por timing.
-    // Resposta neutra mesmo quando limitado (não revela nada ao cliente).
-    const ip = headers().get('x-forwarded-for')?.split(',')[0]?.trim() || 'desconhecido';
-    if ((await checarRate(`reset:${ip}`, 5, 60_000)).permitido) {
-      await solicitarReset(String(formData.get('email') ?? ''));
+    // Rate-limit contra spam/enumeração. Chaveado por IP **e** e-mail para não
+    // colapsar todos num só balde quando o IP não vem (evita bloqueio global).
+    const h = headers();
+    const ip =
+      h.get('x-forwarded-for')?.split(',')[0]?.trim() || h.get('x-real-ip') || 'desconhecido';
+    const email = String(formData.get('email') ?? '').trim().toLowerCase();
+    const permitido = (await checarRate(`reset:${ip}:${email}`, 5, 60_000)).permitido;
+    if (permitido && email) {
+      await solicitarReset(email);
+    } else if (!permitido) {
+      console.warn(`[reset] rate-limit atingido (ip=${ip}) — envio ignorado.`);
     }
     redirect('/recuperar-senha?enviado=1');
   }
