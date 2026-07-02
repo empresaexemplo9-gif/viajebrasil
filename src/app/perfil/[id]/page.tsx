@@ -12,6 +12,7 @@ import {
   alterarStatusUsuario,
   statusDoUsuario,
   definirSenhaUsuario,
+  definirPlanoDoUsuario,
 } from '@/lib/server/admin';
 import { PostCard } from '@/app/feed/PostCard';
 import { ConfirmarSubmit } from '@/components/ConfirmarSubmit';
@@ -31,7 +32,7 @@ export default async function PerfilPublicoPage({
   searchParams,
 }: {
   params: { id: string };
-  searchParams?: { interesse?: string; tipo?: string; enviado?: string; senha?: string };
+  searchParams?: { interesse?: string; tipo?: string; enviado?: string; senha?: string; plano?: string };
 }) {
   const p = await perfilPublicoPorId(params.id);
   if (!p) notFound();
@@ -64,6 +65,13 @@ export default async function PerfilPublicoPage({
     if (!a || !ehAdminPlataforma(a.email)) redirect('/entrar');
     const r = await definirSenhaUsuario(params.id, String(formData.get('senha') ?? ''));
     redirect(`/perfil/${params.id}?senha=${r.ok ? 'ok' : 'erro'}`);
+  }
+  async function aplicarPlano(formData: FormData) {
+    'use server';
+    const a = await obterContexto();
+    if (!a || !ehAdminPlataforma(a.email)) redirect('/entrar');
+    const r = await definirPlanoDoUsuario(params.id, String(formData.get('plano') ?? ''));
+    redirect(`/perfil/${params.id}?plano=${r.ok ? 'ok' : 'erro'}`);
   }
 
   async function solicitar(formData: FormData) {
@@ -227,6 +235,30 @@ export default async function PerfilPublicoPage({
             )}
             {searchParams?.senha === 'erro' && (
               <span className="text-xs font-semibold text-rose-300">Senha inválida (regra não atendida).</span>
+            )}
+          </form>
+
+          {/* Aplicar plano Prime (ou maior) ao negócio deste perfil */}
+          <form action={aplicarPlano} className="flex w-full flex-wrap items-center gap-2 border-t border-white/10 pt-3">
+            <span className="text-xs font-semibold text-ink-200">Aplicar plano:</span>
+            <select
+              name="plano"
+              defaultValue="elite"
+              className="rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-sm text-creme outline-none focus:border-white/40"
+            >
+              <option value="basico">Prime Básico</option>
+              <option value="pro">Prime Pro</option>
+              <option value="elite">Prime Elite</option>
+              <option value="free">Free (remover Prime)</option>
+            </select>
+            <button className="rounded-lg bg-marca-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-marca-600">
+              Aplicar
+            </button>
+            {searchParams?.plano === 'ok' && (
+              <span className="text-xs font-semibold text-emerald-300">Plano aplicado.</span>
+            )}
+            {searchParams?.plano === 'erro' && (
+              <span className="text-xs font-semibold text-rose-300">Não foi possível aplicar.</span>
             )}
           </form>
         </div>

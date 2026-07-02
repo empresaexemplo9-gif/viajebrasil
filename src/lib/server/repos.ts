@@ -5,6 +5,8 @@
  * pelas tabelas reais.
  */
 import { withTenant, prisma } from './prisma';
+import { hashSenha } from './password';
+import { politicaSenha } from '../password-policy';
 import { dePlanoDb, paraPlanoDb, type ChavePlano } from '../planos';
 import { classificarComIA } from './classificacao-ia';
 import { ordenarPorVisibilidade, rotuloDestaque, alcanceLabel } from '../visibilidade';
@@ -68,6 +70,8 @@ export async function carregarUsuario(
 }
 
 export interface DadosPerfil {
+  nome: string;
+  tipo: string; // candidato | empresa_contratante | vendedor | comprador
   areaAtuacao: string;
   regiao: string;
   bio: string;
@@ -75,15 +79,45 @@ export interface DadosPerfil {
   representa: string;
   avatarUrl: string;
   visibilidadePublica: boolean;
+  /** Opcionais: alteram credenciais do usuário (em branco = mantém). */
+  email?: string;
+  senha?: string;
 }
 
 export async function salvarPerfil(
   tenantId: string,
   userId: string,
   dados: DadosPerfil,
-): Promise<void> {
+): Promise<{ ok: boolean; erro?: string }> {
+  // Credenciais (opcionais): validadas ANTES da transação para dar erro claro.
+  const novoEmail = (dados.email ?? '').trim().toLowerCase();
+  const trocarEmail = novoEmail.length > 0;
+  if (trocarEmail) {
+    const emailValido = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(novoEmail);
+    if (!emailValido) return { ok: false, erro: 'E-mail inválido.' };
+    const jaUsa = await prisma.user.findFirst({
+      where: { email: novoEmail, NOT: { id: userId } },
+      select: { id: true },
+    });
+    if (jaUsa) return { ok: false, erro: 'Este e-mail já está em uso por outra conta.' };
+  }
+  let senhaHash: string | undefined;
+  if ((dados.senha ?? '').length > 0) {
+    const regra = politicaSenha(dados.senha as string);
+    if (!regra.ok) return { ok: false, erro: regra.erros.join(' ') };
+    senhaHash = await hashSenha(dados.senha as string);
+  }
+
   await withTenant(tenantId, async (db) => {
-    await db.user.update({ where: { id: userId }, data: { avatarUrl: dados.avatarUrl || null } });
+    await db.user.update({
+      where: { id: userId },
+      data: {
+        avatarUrl: dados.avatarUrl || null,
+        ...(dados.nome.trim() ? { nome: dados.nome.trim() } : {}),
+        ...(trocarEmail ? { email: novoEmail } : {}),
+        ...(senhaHash ? { senhaHash } : {}),
+      },
+    });
     const campos = {
       areaAtuacao: dados.areaAtuacao,
       regiao: dados.regiao,
@@ -91,14 +125,18 @@ export async function salvarPerfil(
       bannerUrl: dados.bannerUrl || null,
       representa: dados.representa || null,
       visibilidadePublica: dados.visibilidadePublica,
+      ...(dados.tipo ? { tipo: dados.tipo as never } : {}),
     };
     const existe = await db.profile.findFirst({ where: { userId, tenantId } });
     if (existe) {
       await db.profile.update({ where: { id: existe.id }, data: campos });
     } else {
-      await db.profile.create({ data: { tenantId, userId, tipo: 'empresa_contratante', ...campos } });
+      await db.profile.create({
+        data: { tenantId, userId, tipo: (dados.tipo || 'empresa_contratante') as never, ...campos },
+      });
     }
   });
+  return { ok: true };
 }
 
 // ───────────────────────── Diretório de perfis (busca pública) ─────────────────────────

@@ -12,10 +12,18 @@ import { ExcluirContaBotao } from '@/components/ExcluirContaBotao';
 
 export const metadata = { title: 'Meu painel' };
 
+// Tipos de perfil disponíveis (qualquer usuário pode alternar entre eles).
+const TIPOS_PERFIL = [
+  { v: 'candidato', r: 'Candidato (busca trabalho)' },
+  { v: 'empresa_contratante', r: 'Empresa / Contratante' },
+  { v: 'vendedor', r: 'Vendedor / Prestador' },
+  { v: 'comprador', r: 'Comprador' },
+];
+
 export default async function PainelPage({
   searchParams,
 }: {
-  searchParams?: { salvo?: string };
+  searchParams?: { salvo?: string; erro?: string };
 }) {
   const ctx = await obterContexto();
   if (!ctx) redirect('/entrar?proximo=/painel');
@@ -27,7 +35,14 @@ export default async function PainelPage({
     'use server';
     const atual = await obterContexto();
     if (!atual) redirect('/entrar');
-    await salvarPerfil(atual.tenantId, atual.userId, {
+    // Tipo de perfil restrito às opções válidas.
+    const tipoBruto = String(formData.get('tipo') ?? '');
+    const tipo = TIPOS_PERFIL.some((t) => t.v === tipoBruto) ? tipoBruto : '';
+    const r = await salvarPerfil(atual.tenantId, atual.userId, {
+      nome: String(formData.get('nome') ?? '').trim(),
+      tipo,
+      email: String(formData.get('email') ?? '').trim(),
+      senha: String(formData.get('senha') ?? ''),
       areaAtuacao: String(formData.get('areaAtuacao') ?? ''),
       regiao: String(formData.get('regiao') ?? ''),
       bio: String(formData.get('bio') ?? ''),
@@ -36,7 +51,7 @@ export default async function PainelPage({
       representa: String(formData.get('representa') ?? '').trim(),
       visibilidadePublica: String(formData.get('visibilidadePublica') ?? '') === 'on',
     });
-    redirect('/painel?salvo=1');
+    redirect(r.ok ? '/painel?salvo=1' : `/painel?erro=${encodeURIComponent(r.erro ?? 'Falha ao salvar.')}`);
   }
 
   const plano = obterPlano(u.plano);
@@ -46,6 +61,20 @@ export default async function PainelPage({
 
   return (
     <div className="container-app py-12">
+      {/* Admin da plataforma — no TOPO, bem visível (só superadmin). */}
+      {admin && (
+        <Link
+          href="/admin"
+          className="mb-6 flex items-center justify-between rounded-xl border border-ink-900 bg-ink-950 px-4 py-3 text-creme"
+        >
+          <span className="flex items-center gap-2 text-sm font-bold">
+            <Icon name="shield" size={18} className="text-marca-300" />
+            Painel do admin da plataforma — moderação, edições e reparos
+          </span>
+          <span className="text-sm font-semibold text-marca-300">Abrir →</span>
+        </Link>
+      )}
+
       {/* Cabeçalho social (banner + foto), como no feed */}
       <div className="mb-6">
         <CabecalhoPerfil
@@ -74,19 +103,14 @@ export default async function PainelPage({
         </div>
       </div>
 
-      {admin && (
-        <Link href="/admin" className="mt-6 flex items-center justify-between rounded-xl border border-ink-900 bg-ink-950 px-4 py-3 text-creme">
-          <span className="flex items-center gap-2 text-sm font-bold">
-            <Icon name="shield" size={18} className="text-marca-300" />
-            Admin da plataforma — edições e reparos
-          </span>
-          <span className="text-sm font-semibold text-marca-300">Abrir →</span>
-        </Link>
-      )}
-
       {searchParams?.salvo && (
         <p className="mt-4 rounded-lg bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
           Perfil salvo.
+        </p>
+      )}
+      {searchParams?.erro && (
+        <p className="mt-4 rounded-lg bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
+          {searchParams.erro}
         </p>
       )}
 
@@ -135,9 +159,41 @@ export default async function PainelPage({
         <div className="sm:col-span-2">
           <h2 className="font-bold text-tinta">Editar perfil público</h2>
           <p className="text-xs text-slate-500">
-            Foto e banner aparecem no seu perfil e no feed — valem para qualquer tipo de conta.
+            Edite seu nome, tipo de perfil, foto e banner — valem para qualquer tipo de conta.
           </p>
         </div>
+
+        <Campo nome="nome" rotulo="Nome (ou nome da marca/empresa)" valor={u.nome} />
+
+        <label className="block">
+          <span className="mb-1 block text-xs font-semibold text-slate-500">Tipo de perfil</span>
+          <select
+            name="tipo"
+            defaultValue={u.perfil?.tipo ?? 'empresa_contratante'}
+            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-marca-500"
+          >
+            {TIPOS_PERFIL.map((t) => (
+              <option key={t.v} value={t.v}>
+                {t.r}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <Campo nome="email" rotulo="E-mail (login)" valor={u.email} tipo="email" />
+
+        <label className="block">
+          <span className="mb-1 block text-xs font-semibold text-slate-500">
+            Nova senha (deixe em branco para manter)
+          </span>
+          <input
+            type="password"
+            name="senha"
+            autoComplete="new-password"
+            placeholder="8+ caracteres, maiúscula, número e especial"
+            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-marca-500"
+          />
+        </label>
 
         {/* Pré-visualização banner + avatar */}
         <div className="sm:col-span-2">
@@ -243,12 +299,23 @@ function Atalho({ href, titulo, desc }: { href: string; titulo: string; desc: st
   );
 }
 
-function Campo({ nome, rotulo, valor }: { nome: string; rotulo: string; valor: string }) {
+function Campo({
+  nome,
+  rotulo,
+  valor,
+  tipo = 'text',
+}: {
+  nome: string;
+  rotulo: string;
+  valor: string;
+  tipo?: string;
+}) {
   return (
     <label className="block">
       <span className="mb-1 block text-xs font-semibold text-slate-500">{rotulo}</span>
       <input
         name={nome}
+        type={tipo}
         defaultValue={valor}
         className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-marca-500 focus:ring-2 focus:ring-marca-100"
       />

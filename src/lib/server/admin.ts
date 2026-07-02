@@ -7,6 +7,8 @@
  */
 import { prisma } from './prisma';
 import { hashSenha, politicaSenha } from './password';
+import { assinarPlano } from './repos';
+import { ORDEM, type ChavePlano } from '../planos';
 
 export function ehAdminPlataforma(email?: string | null): boolean {
   if (!email) return false;
@@ -116,6 +118,21 @@ export async function alterarStatusUsuario(id: string, suspender: boolean): Prom
 export async function statusDoUsuario(id: string): Promise<string | null> {
   const u = await prisma.user.findUnique({ where: { id }, select: { status: true } });
   return u?.status ?? null;
+}
+
+/**
+ * Superadmin aplica um plano (Prime ou maior) ao negócio de um usuário — a
+ * ferramenta de "colar Prime" no perfil pela moderação.
+ */
+export async function definirPlanoDoUsuario(
+  userId: string,
+  chave: string,
+): Promise<{ ok: boolean; erro?: string }> {
+  if (!(ORDEM as string[]).includes(chave)) return { ok: false, erro: 'Plano inválido.' };
+  const u = await prisma.user.findUnique({ where: { id: userId }, select: { tenantId: true } });
+  if (!u) return { ok: false, erro: 'Usuário não encontrado.' };
+  await assinarPlano(u.tenantId, chave as ChavePlano);
+  return { ok: true };
 }
 
 /**
