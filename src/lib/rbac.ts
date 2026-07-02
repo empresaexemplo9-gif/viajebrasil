@@ -46,6 +46,7 @@ const TODAS: Permissao[] = [
 const MATRIZ: Record<Papel, Permissao[]> = {
   super_admin: TODAS,
   admin: [
+    'tenant:gerenciar',
     'usuarios:gerenciar',
     'config:editar',
     'vagas:ler',

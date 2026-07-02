@@ -45,7 +45,7 @@ export async function listarTenantsAdmin(): Promise<TenantAdmin[]> {
   const ts = await prisma.tenant.findMany({
     include: {
       _count: { select: { users: true } },
-      users: { where: { papel: 'super_admin' }, select: { email: true }, take: 1 },
+      users: { where: { papel: { in: ['super_admin', 'admin'] } }, select: { email: true }, take: 1 },
     },
     orderBy: { criadoEm: 'desc' },
     take: 300,
@@ -155,12 +155,16 @@ export async function definirSenhaUsuario(
 }
 
 /**
- * Exclui TODOS os perfis que não são super_admin (e seus dados). Ação em massa
- * irreversível — usada pela limpeza no painel admin. Mantém os superadmins.
+ * Exclui TODOS os perfis, exceto os administradores da PLATAFORMA (e-mails em
+ * ADMIN_EMAILS). Ação em massa irreversível — usada pela limpeza no painel admin.
  */
 export async function excluirPerfisNaoAdmin(): Promise<number> {
+  const protegidos = (process.env.ADMIN_EMAILS ?? '')
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
   const alvos = await prisma.user.findMany({
-    where: { papel: { not: 'super_admin' } },
+    where: protegidos.length ? { email: { notIn: protegidos } } : {},
     select: { id: true },
   });
   for (const u of alvos) {

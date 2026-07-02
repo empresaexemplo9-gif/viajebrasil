@@ -106,6 +106,28 @@ if (process.env.RECUPERAR_ADMIN_EMAIL && process.env.RECUPERAR_ADMIN_SENHA) {
   }
 }
 
+// Normaliza papéis: rebaixa super_admin -> admin para todos, EXCETO os e-mails
+// em ADMIN_EMAILS (os verdadeiros admins da plataforma). Rode uma vez com
+// NORMALIZAR_PAPEIS=1 e depois remova a variável.
+if (process.env.NORMALIZAR_PAPEIS === '1') {
+  try {
+    const { PrismaClient } = await import('@prisma/client');
+    const prisma = new PrismaClient();
+    const protegidos = (process.env.ADMIN_EMAILS ?? '')
+      .split(',')
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean);
+    const r = await prisma.user.updateMany({
+      where: { papel: 'super_admin', ...(protegidos.length ? { email: { notIn: protegidos } } : {}) },
+      data: { papel: 'admin' },
+    });
+    console.log(`[normalizar-papeis] ${r.count} conta(s) rebaixada(s) de super_admin para admin (protegidos: ${protegidos.length}).`);
+    await prisma.$disconnect();
+  } catch (e) {
+    console.error('[normalizar-papeis] falhou (segue o build):', e?.message ?? e);
+  }
+}
+
 if (process.env.LIMPAR_DEMO === '1') {
   try {
     const { PrismaClient } = await import('@prisma/client');

@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { obterContexto } from '@/lib/server/session';
-import { pode, type Papel } from '@/lib/rbac';
+import { ehAdminPlataforma } from '@/lib/server/admin';
 import { definirPreco, listarPlanos, precoFormatado, type ChavePlano } from '@/lib/planos';
 
 export const metadata = { title: 'Admin · Tabela de preços' };
@@ -12,14 +12,15 @@ export default async function AdminPlanosPage({
 }) {
   const ctx = await obterContexto();
   if (!ctx) redirect('/entrar?proximo=/admin/planos');
-  // Apenas papéis com gestão de configurações acessam o admin.
-  if (!pode(ctx.papel as Papel, 'config:editar')) {
+  // Preços são GLOBAIS (afetam todos os negócios): só o admin da plataforma
+  // (ADMIN_EMAILS) pode editar — nunca um dono de negócio comum.
+  if (!ehAdminPlataforma(ctx.email)) {
     return (
       <div className="container-app py-16">
         <div className="cartao mx-auto max-w-md text-center">
           <h1 className="text-2xl font-black text-tinta">Acesso restrito</h1>
           <p className="mt-2 text-slate-600">
-            Só administradores do tenant podem editar a tabela de preços.
+            Apenas a administração da plataforma pode editar a tabela de preços.
           </p>
         </div>
       </div>
@@ -29,7 +30,7 @@ export default async function AdminPlanosPage({
   async function salvarPreco(formData: FormData) {
     'use server';
     const atual = await obterContexto();
-    if (!atual || !pode(atual.papel as Papel, 'config:editar')) redirect('/entrar');
+    if (!atual || !ehAdminPlataforma(atual.email)) redirect('/entrar');
     const chave = String(formData.get('plano') ?? '') as ChavePlano;
     const preco = Number(String(formData.get('preco') ?? '').replace(',', '.'));
     definirPreco(chave, preco);

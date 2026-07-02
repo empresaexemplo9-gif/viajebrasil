@@ -126,7 +126,7 @@ export async function POST(req: Request) {
               email: emailNorm,
               senhaHash,
               tipoPerfil,
-              papel: 'super_admin',
+              papel: 'admin',
               status: 'ativo',
             },
           });

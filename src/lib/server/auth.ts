@@ -51,7 +51,7 @@ async function onboardOAuth(
         tenantId: tenant.id,
         nome: nome || e,
         email: e,
-        papel: 'super_admin',
+        papel: 'admin',
         status: 'ativo',
         emailVerificadoEm: new Date(),
         tipoPerfil: 'pessoa_fisica',
