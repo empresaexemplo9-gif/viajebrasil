@@ -33,16 +33,42 @@ export default async function AdminPlataformaPage({
   const ctx = await obterContexto();
   if (!ctx) redirect('/entrar?proximo=/admin');
   if (!ehAdminPlataforma(ctx.email)) {
+    const qtdConfigurada = (process.env.ADMIN_EMAILS ?? '')
+      .split(',')
+      .map((e) => e.trim())
+      .filter(Boolean).length;
     return (
       <div className="container-app py-16">
-        <div className="cartao mx-auto max-w-md text-center">
-          <h1 className="text-2xl font-black text-tinta">Acesso restrito</h1>
-          <p className="mt-2 text-slate-600">
-            Esta é a administração da plataforma. Seu e-mail não está autorizado.
+        <div className="cartao mx-auto max-w-lg">
+          <h1 className="text-center text-2xl font-black text-tinta">Acesso restrito</h1>
+          <p className="mt-2 text-center text-slate-600">
+            As ferramentas de moderador são liberadas pela variável <code>ADMIN_EMAILS</code>.
           </p>
-          <p className="mt-3 text-xs text-slate-400">
-            Para liberar, adicione seu e-mail na variável <code>ADMIN_EMAILS</code> (Vercel) e refaça o deploy.
-          </p>
+          <div className="mt-4 rounded-lg bg-slate-50 p-4 text-sm">
+            <p>
+              Você está logado como:{' '}
+              <strong className="text-tinta">{ctx.email ?? '(sem e-mail)'}</strong>
+            </p>
+            <p className="mt-1 text-slate-600">
+              <code>ADMIN_EMAILS</code> na Vercel:{' '}
+              {qtdConfigurada > 0
+                ? `${qtdConfigurada} e-mail(s) definido(s) — mas nenhum bate com o acima.`
+                : 'VAZIA / não definida.'}
+            </p>
+          </div>
+          <ol className="mt-4 list-decimal space-y-1 pl-5 text-sm text-slate-600">
+            <li>
+              Vercel → projeto → <strong>Settings → Environment Variables</strong> (ambiente{' '}
+              <strong>Production</strong>).
+            </li>
+            <li>
+              Defina <code>ADMIN_EMAILS</code> = <strong>{ctx.email ?? 'seu-email'}</strong> (exatamente
+              esse e-mail; separe por vírgula se houver mais).
+            </li>
+            <li>
+              <strong>Redeploy</strong> e recarregue esta página.
+            </li>
+          </ol>
         </div>
       </div>
     );
