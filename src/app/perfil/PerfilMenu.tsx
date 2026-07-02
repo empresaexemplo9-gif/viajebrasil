@@ -3,7 +3,14 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Icon } from '@/components/Icon';
-import { acaoExcluirPerfil, acaoSuspenderPerfil } from './acoes';
+import { acaoExcluirPerfil, acaoSuspenderPerfil, acaoAplicarPlano } from './acoes';
+
+const PLANOS: { chave: string; rotulo: string }[] = [
+  { chave: 'basico', rotulo: 'Prime Básico' },
+  { chave: 'pro', rotulo: 'Prime Pro' },
+  { chave: 'elite', rotulo: 'Prime Elite' },
+  { chave: 'free', rotulo: 'Free (remover)' },
+];
 
 /**
  * Menu de ferramentas (⋯) sobreposto ao card do perfil, só para superadmin:
@@ -71,6 +78,27 @@ export function PerfilMenu({ perfilId, nome }: { perfilId: string; nome: string 
             <Icon name="trash" size={16} />
             Excluir perfil
           </button>
+
+          <div className="my-1 border-t border-ink-100" />
+          <p className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+            Aplicar plano
+          </p>
+          {PLANOS.map((p) => (
+            <button
+              key={p.chave}
+              type="button"
+              disabled={pendente}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                rodar(() => acaoAplicarPlano(perfilId, p.chave));
+              }}
+              className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm text-slate-700 hover:bg-slate-100 disabled:opacity-50"
+            >
+              <Icon name="star" size={16} className="text-marca-500" duo />
+              {p.rotulo}
+            </button>
+          ))}
         </div>
       )}
     </div>

@@ -6,7 +6,12 @@
  */
 import { revalidatePath } from 'next/cache';
 import { obterContexto } from '@/lib/server/session';
-import { ehAdminPlataforma, excluirUsuario, alterarStatusUsuario } from '@/lib/server/admin';
+import {
+  ehAdminPlataforma,
+  excluirUsuario,
+  alterarStatusUsuario,
+  definirPlanoDoUsuario,
+} from '@/lib/server/admin';
 
 export interface ResultadoAcao {
   ok: boolean;
@@ -30,4 +35,11 @@ export async function acaoSuspenderPerfil(perfilId: string, suspender: boolean):
   await alterarStatusUsuario(perfilId, suspender);
   revalidatePath('/perfil');
   return { ok: true };
+}
+
+export async function acaoAplicarPlano(perfilId: string, chave: string): Promise<ResultadoAcao> {
+  if (!(await exigirAdmin())) return { ok: false, erro: 'Sem permissão.' };
+  const r = await definirPlanoDoUsuario(perfilId, chave);
+  if (r.ok) revalidatePath('/perfil');
+  return r;
 }
