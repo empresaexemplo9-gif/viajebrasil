@@ -114,50 +114,10 @@ export default async function PainelPage({
         </p>
       )}
 
-      {/* Plano atual */}
-      <div className="cartao mt-8 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <span
-            className={`selo ${plano.prime ? 'bg-marca-600 text-white' : 'bg-slate-100 text-slate-600'}`}
-          >
-            {plano.nome}
-          </span>
-          <p className="mt-2 text-sm text-slate-600">
-            {plano.prime
-              ? 'IA de classificação de currículos e visibilidade direcionada ativas.'
-              : 'Assine o Prime para a IA ranquear seus currículos e ampliar seu alcance.'}
-          </p>
-        </div>
-        {plano.prime ? (
-          <Link href="/painel/prime" className="btn-primario !py-2">
-            Painel de visibilidade
-          </Link>
-        ) : (
-          <Link href="/planos" className="btn-primario !py-2">
-            Conhecer o Prime
-          </Link>
-        )}
-      </div>
-
-      {/* Atalhos */}
-      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <Atalho href="/painel/vagas" titulo="Minhas vagas" desc="Publicar e gerir vagas, ver candidatos." />
-        <Atalho href="/painel/vitrine" titulo="Minha vitrine" desc="Produtos/serviços com visibilidade por plano." />
-        <Atalho href="/painel/agenda" titulo="Agenda e calls" desc="Reuniões, entrevistas e negociações com sala de call." />
-        <Atalho href="/painel/chat" titulo="Chat" desc="Converse e envie convites de reunião na conversa." />
-        <Atalho href="/painel/crm" titulo="CRM" desc="Capte clientes (link, perfil, vitrine) e gerencie o funil." />
-        <Atalho href="/painel/clientes" titulo="Clientes" desc="Negócios fechados, registrados automaticamente do funil." />
-        <Atalho href="/painel/grupos" titulo="Grupos" desc="Comunidades por setor e região." />
-        <Atalho href="/painel/propostas" titulo="Propostas" desc="Gere propostas e link em PDF para o cliente." />
-        <Atalho href="/ranking" titulo="Ranking" desc="Engajamento e recompensas por atividade." />
-        <Atalho href="/painel/prime" titulo="Ranking por IA" desc="Currículos pontuados e métricas." />
-        <Atalho href="/perfil" titulo="Buscar perfis" desc="Diretório de empresas, profissionais e candidatos." />
-        <Atalho href="/vitrine" titulo="Vitrine" desc="Marketplace de produtos e serviços." />
-      </div>
-
-      <form action={salvar} className="cartao mt-8 grid gap-4 sm:grid-cols-2">
+      {/* Editar perfil — logo no topo, pra ficar claro que é aqui que se edita. */}
+      <form action={salvar} id="editar" className="cartao mt-6 grid gap-4 scroll-mt-24 sm:grid-cols-2">
         <div className="sm:col-span-2">
-          <h2 className="font-bold text-tinta">Editar perfil público</h2>
+          <h2 className="text-lg font-black text-tinta">Editar perfil</h2>
           <p className="text-xs text-slate-500">
             Edite seu nome, tipo de perfil, foto e banner — valem para qualquer tipo de conta.
           </p>
@@ -262,6 +222,47 @@ export default async function PainelPage({
           <button className="btn-primario">Salvar perfil</button>
         </div>
       </form>
+
+      {/* Plano atual */}
+      <div className="cartao mt-8 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <span
+            className={`selo ${plano.prime ? 'bg-marca-600 text-white' : 'bg-slate-100 text-slate-600'}`}
+          >
+            {plano.nome}
+          </span>
+          <p className="mt-2 text-sm text-slate-600">
+            {plano.prime
+              ? 'IA de classificação de currículos e visibilidade direcionada ativas.'
+              : 'Assine o Prime para a IA ranquear seus currículos e ampliar seu alcance.'}
+          </p>
+        </div>
+        {plano.prime ? (
+          <Link href="/painel/prime" className="btn-primario !py-2">
+            Painel de visibilidade
+          </Link>
+        ) : (
+          <Link href="/planos" className="btn-primario !py-2">
+            Conhecer o Prime
+          </Link>
+        )}
+      </div>
+
+      {/* Atalhos */}
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <Atalho href="/painel/vagas" titulo="Minhas vagas" desc="Publicar e gerir vagas, ver candidatos." />
+        <Atalho href="/painel/vitrine" titulo="Minha vitrine" desc="Produtos/serviços com visibilidade por plano." />
+        <Atalho href="/painel/agenda" titulo="Agenda e calls" desc="Reuniões, entrevistas e negociações com sala de call." />
+        <Atalho href="/painel/chat" titulo="Chat" desc="Converse e envie convites de reunião na conversa." />
+        <Atalho href="/painel/crm" titulo="CRM" desc="Capte clientes (link, perfil, vitrine) e gerencie o funil." />
+        <Atalho href="/painel/clientes" titulo="Clientes" desc="Negócios fechados, registrados automaticamente do funil." />
+        <Atalho href="/painel/grupos" titulo="Grupos" desc="Comunidades por setor e região." />
+        <Atalho href="/painel/propostas" titulo="Propostas" desc="Gere propostas e link em PDF para o cliente." />
+        <Atalho href="/ranking" titulo="Ranking" desc="Engajamento e recompensas por atividade." />
+        <Atalho href="/painel/prime" titulo="Ranking por IA" desc="Currículos pontuados e métricas." />
+        <Atalho href="/perfil" titulo="Buscar perfis" desc="Diretório de empresas, profissionais e candidatos." />
+        <Atalho href="/vitrine" titulo="Vitrine" desc="Marketplace de produtos e serviços." />
+      </div>
 
       {/* Zona de perigo */}
       <div className="cartao mt-8 border-rose-200">

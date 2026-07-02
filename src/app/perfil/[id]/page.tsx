@@ -178,7 +178,7 @@ export default async function PerfilPublicoPage({
                   </form>
                 </div>
               ) : (
-                <Link href="/painel" className="btn-secundario !py-2">
+                <Link href="/painel#editar" className="btn-secundario !py-2">
                   Editar meu perfil
                 </Link>
               )}

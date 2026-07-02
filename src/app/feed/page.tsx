@@ -46,7 +46,7 @@ export default async function FeedPage({
           avatarUrl={u.avatarUrl}
           bannerUrl={u.perfil?.bannerUrl}
           subtitulo={u.perfil?.areaAtuacao || u.email}
-          acaoHref="/painel"
+          acaoHref="/painel#editar"
           acaoRotulo="Editar perfil"
         />
       ) : (
