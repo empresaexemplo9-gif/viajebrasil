@@ -1,5 +1,8 @@
 import Link from 'next/link';
 import { buscarPerfis } from '@/lib/server/repos';
+import { obterContexto } from '@/lib/server/session';
+import { ehAdminPlataforma } from '@/lib/server/admin';
+import { PerfilMenu } from './PerfilMenu';
 
 export const metadata = { title: 'Buscar perfis' };
 export const dynamic = 'force-dynamic';
@@ -25,12 +28,11 @@ export default async function PerfilDiretorioPage({
   searchParams?: { q?: string; tipo?: string; area?: string; regiao?: string };
 }) {
   const sp = searchParams ?? {};
-  const perfis = await buscarPerfis({
-    q: sp.q,
-    tipoProfile: sp.tipo,
-    area: sp.area,
-    regiao: sp.regiao,
-  });
+  const [perfis, ctx] = await Promise.all([
+    buscarPerfis({ q: sp.q, tipoProfile: sp.tipo, area: sp.area, regiao: sp.regiao }),
+    obterContexto(),
+  ]);
+  const souAdmin = ehAdminPlataforma(ctx?.email);
 
   return (
     <div className="container-app py-12">
@@ -85,8 +87,9 @@ export default async function PerfilDiretorioPage({
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {perfis.map((p) => (
+          <div key={p.id} className="relative">
+            {souAdmin && <PerfilMenu perfilId={p.id} nome={p.nome} />}
           <Link
-            key={p.id}
             href={`/perfil/${p.id}`}
             className={`cartao block overflow-hidden !p-0 ${p.destaque ? 'ring-2 ring-marca-400' : ''}`}
           >
@@ -124,6 +127,7 @@ export default async function PerfilDiretorioPage({
               {p.bio && <p className="mt-2 line-clamp-2 text-sm text-slate-600">{p.bio}</p>}
             </div>
           </Link>
+          </div>
         ))}
       </div>
 
